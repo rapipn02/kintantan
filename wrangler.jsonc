@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "kintantan",
+  "compatibility_date": "2026-10-01",
+  // Situs statis murni: Cloudflare menyajikan dist/ dari edge, tanpa kode Worker.
+  "assets": {
+    "directory": "./dist",
+    // Path seperti /s/<token> (deep link QR/NFC) dijawab dengan index.html.
+    "not_found_handling": "single-page-application",
+  },
+}

@@ -1,0 +1,25 @@
+# Header untuk Cloudflare Workers Static Assets (berlaku juga di Cloudflare Pages).
+
+# File ber-hash: nama berubah setiap isinya berubah -> aman di-cache selamanya (browser & edge).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/workbox-*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# Harus selalu dicek ulang supaya versi baru cepat sampai ke pengunjung.
+/sw.js
+  Cache-Control: no-cache
+/registerSW.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/icons/*
+  Cache-Control: public, max-age=604800
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
