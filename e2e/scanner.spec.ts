@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 import { skipHelp, startGame, tapExhibit, waitForCameraToSettle } from './helpers.ts'
 
 // Kamera palsu Chromium memutar video berisi QR kandang singa (lihat global-setup.ts).
+// Scan bisa selesai dalam <1 detik, jadi jangan menunggu dialog scanner terlihat lebih dulu:
+// dialog itu bisa sudah tertutup sebelum dicek. Yang dicek adalah hasil akhirnya.
 
 test.beforeEach(async ({ page }) => {
   await skipHelp(page)
@@ -14,10 +16,11 @@ test.beforeEach(async ({ page }) => {
 test('scan QR di kandang membuka kartu hewan', async ({ page }) => {
   await tapExhibit(page, 'singa')
   await page.getByRole('button', { name: 'Scan QR' }).tap()
-  await expect(page.getByRole('dialog', { name: 'Scan QR kandang Singa Afrika' })).toBeVisible()
 
   const card = page.getByRole('dialog', { name: 'Singa Afrika' })
   await expect(card.getByText('Hewan Baru Ditemukan!')).toBeVisible({ timeout: 20_000 })
+  // Scanner dibuka untuk kandang singa, jadi tidak ada pesan "bukan …".
+  await expect(card.getByText(/bukan/)).toHaveCount(0)
   await expect(page.getByRole('dialog', { name: /Scan QR kandang/ })).toHaveCount(0)
   await card.getByRole('button', { name: 'Lanjut Jelajah' }).tap()
   await expect(page.getByTestId('hud-progress')).toHaveAccessibleName('1 dari 57 hewan ditemukan')
@@ -36,7 +39,6 @@ test('tombol Scan Barcode bisa scan kandang mana pun tanpa memilih hewan dulu', 
   page,
 }) => {
   await page.getByRole('button', { name: 'Scan Barcode' }).tap()
-  await expect(page.getByRole('dialog', { name: 'Scan Barcode' })).toBeVisible()
 
   const card = page.getByRole('dialog', { name: 'Singa Afrika' })
   await expect(card.getByText('Hewan Baru Ditemukan!')).toBeVisible({ timeout: 20_000 })

@@ -69,8 +69,8 @@ Kamera hanya bisa dipakai lewat **HTTPS**. Untuk mencoba scan di HP asli, deploy
 Saat ini peta memakai **satu gambar komposit** (peta + semua hewan). Hasil terbaik didapat kalau
 teman desainer meng-export:
 
-1. **Peta dasar tanpa hewan** → simpan sebagai `assets-src/map.png` (atau `.webp`). Lebar ideal
-   3000–4096 px. Gambar yang lebih lebar otomatis dikecilkan ke 4096 px supaya aman di memori iPhone.
+1. **Peta** → simpan PNG asli dari Figma sebagai `assets-src/map.png`. Lebar minimal 3000 px
+   (`npm run assets` memberi peringatan kalau kurang).
 2. **Tiap hewan sebagai PNG transparan** (export 2×) → `assets-src/sprites/<id-hewan>.png`. Nama
    file harus sama dengan `id` di `src/features/exhibits/data/exhibits.ts` (mis. `singa.png`,
    `rusa-totol-2.png`).
@@ -78,6 +78,25 @@ teman desainer meng-export:
 
 Kalau sprite tersedia, hewan otomatis digambar dari sprite, dan hewan yang belum ditemukan tampil
 sebagai **siluet**. Kalau sprite belum ada, peta komposit dipakai apa adanya.
+
+### Peta dipakai apa adanya
+
+- Peta **tidak dikompres, di-resize, atau dikonversi**. `npm run assets` hanya menyalin
+  `assets-src/map.png` byte-per-byte ke `src/assets/map/base.png`, lalu membuat `base.meta.json`
+  (ukuran gambar + LQIP mini 48 px sebagai data URI, dibuat terpisah dari peta). Hash file asli,
+  `assets-src/map.png`, `src/assets/map/base.png`, dan `dist/assets/base-<hash>.png` selalu sama.
+- **Masukkan file HD langsung ke `assets-src/map.png`** (salin dari export Figma / Google Drive).
+  Jangan lewat chat AI: chat mengecilkan dan mengompres gambar yang diunggah, sehingga peta jadi
+  buram saat di-zoom.
+- **Batas 25 MiB per file** di Cloudflare Workers Static Assets. PNG yang lebih besar gagal
+  di-deploy. Precache service worker (`maximumFileSizeToCacheInBytes` di `vite.config.ts`) diset
+  30 MiB supaya peta tetap tersedia offline.
+- Usahakan ≤ 16 megapiksel. Gambar yang lebih besar berisiko gagal tampil di iPhone lama (batas
+  memori gambar Safari), jadi tes di iPhone asli.
+- **Zoom maksimum otomatis mengikuti resolusi gambar**: zoom berhenti saat 1 piksel gambar ≈ 2.5
+  piksel fisik layar (`CAMERA.maxPhysicalPixelsPerImagePixel`), maksimal 4× tampilan seluruh peta
+  (`CAMERA.maxZoom`), dan selalu menyisakan minimal 1.5× zoom. Makin besar resolusi peta, makin
+  dalam zoom yang tetap tajam di layar Retina.
 
 Posisi hewan ada di `exhibits.ts` sebagai koordinat **ternormalisasi** (0–1 terhadap lebar/tinggi
 peta). Koordinat ini tidak bergantung pada resolusi export, jadi selama komposisi peta di Figma

@@ -1,7 +1,7 @@
-import mapUrl from '../../assets/map/base.webp'
+import mapUrl from '../../assets/map/base.png'
 import mapMeta from '../../assets/map/base.meta.json'
 
-/** Peta dasar. Ganti lewat `assets-src/map.*` lalu `npm run assets`. */
+/** Peta dasar (PNG asli apa adanya). Ganti lewat `assets-src/map.png` lalu `npm run assets`. */
 export const MAP = {
   src: mapUrl,
   width: mapMeta.width,
@@ -12,6 +12,11 @@ export const MAP = {
 export const CAMERA = {
   /** Zoom maksimum relatif terhadap tampilan "seluruh peta". */
   maxZoom: 4,
+  /**
+   * Batas ketajaman: zoom berhenti saat 1 piksel gambar peta ≈ 2.5 piksel fisik layar,
+   * jadi zoom maksimum otomatis mengikuti resolusi gambar dan DPR layar.
+   */
+  maxPhysicalPixelsPerImagePixel: 2.5,
   /** Zoom saat kamera terbang ke Titik Awal sesudah layar pembuka. */
   startZoom: 1.8,
   /** Zoom saat terbang ke hewan (mis. dari link QR). */

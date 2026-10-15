@@ -1,13 +1,14 @@
 /**
  * Pipeline aset: mengubah file mentah dari Figma (folder `assets-src/`) menjadi file siap pakai.
  *
- *   assets-src/map.(webp|png|jpg)        -> src/assets/map/base.webp + base.meta.json (ukuran + LQIP)
+ *   assets-src/map.png                   -> src/assets/map/base.png (disalin apa adanya)
+ *                                           + base.meta.json (ukuran + LQIP)
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
  *
  * Jalankan: npm run assets
  */
-import { copyFile, mkdir, readdir, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import sharp from 'sharp'
@@ -18,36 +19,40 @@ const OUT_MAP = path.join(ROOT, 'src/assets/map')
 const OUT_SPRITES = path.join(ROOT, 'src/assets/sprites')
 const OUT_ICONS = path.join(ROOT, 'public/icons')
 
-/** Batas aman tekstur di iOS Safari; gambar lebih besar berisiko membuat tab crash. */
-const MAX_MAP_WIDTH = 4096
+/** Di bawah lebar ini peta mulai terlihat buram saat di-zoom di layar Retina. */
+const MIN_MAP_WIDTH = 3000
 const MAX_SPRITE_SIZE = 512
 const IMAGE_EXT = /\.(webp|png|jpe?g|avif)$/i
 
+/**
+ * Peta dipakai PERSIS seperti PNG asli dari desainer: disalin byte-per-byte, tanpa kompres,
+ * resize, atau konversi. Yang dibuat hanya meta (ukuran) dan LQIP mini terpisah.
+ */
 async function buildMap() {
-  const files = await readdir(SRC)
-  const source = files.find((f) => /^map\./i.test(f) && IMAGE_EXT.test(f))
-  if (!source) throw new Error('assets-src/map.(webp|png|jpg) tidak ditemukan')
+  const source = path.join(SRC, 'map.png')
+  if (!existsSync(source)) throw new Error('assets-src/map.png tidak ditemukan')
 
   await mkdir(OUT_MAP, { recursive: true })
-  const input = sharp(path.join(SRC, source))
-  const { width = 0 } = await input.metadata()
-  const pipeline = width > MAX_MAP_WIDTH ? input.resize({ width: MAX_MAP_WIDTH }) : input
+  for (const f of await readdir(OUT_MAP)) {
+    if (/^base\.(webp|png|jpe?g|avif)$/i.test(f)) await rm(path.join(OUT_MAP, f))
+  }
+  await copyFile(source, path.join(OUT_MAP, 'base.png'))
 
-  const info = await pipeline
-    .clone()
-    .webp({ quality: 88, effort: 6, smartSubsample: true })
-    .toFile(path.join(OUT_MAP, 'base.webp'))
+  const { width = 0, height = 0 } = await sharp(source).metadata()
+  if (width < MIN_MAP_WIDTH) {
+    console.warn(
+      `PERINGATAN: lebar peta hanya ${width} px (< ${MIN_MAP_WIDTH} px), peta akan terlihat ` +
+        'buram saat di-zoom. Export ulang dari Figma dengan resolusi lebih besar.',
+    )
+  }
 
   // LQIP: versi mini yang di-inline sebagai data URI, tampil instan sebelum peta penuh selesai.
-  const lqip = await pipeline.clone().resize({ width: 48 }).webp({ quality: 40 }).toBuffer()
+  const lqip = await sharp(source).resize({ width: 48 }).webp({ quality: 40 }).toBuffer()
 
-  const meta = {
-    width: info.width,
-    height: info.height,
-    lqip: `data:image/webp;base64,${lqip.toString('base64')}`,
-  }
+  const meta = { width, height, lqip: `data:image/webp;base64,${lqip.toString('base64')}` }
   await writeFile(path.join(OUT_MAP, 'base.meta.json'), JSON.stringify(meta, null, 2) + '\n')
-  console.log(`map: ${info.width}x${info.height}, ${(info.size / 1024).toFixed(0)} KB`)
+  const bytes = (await stat(source)).size
+  console.log(`map: ${width}x${height}, ${(bytes / 1024 / 1024).toFixed(2)} MiB (apa adanya)`)
 }
 
 async function buildSprites() {

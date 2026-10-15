@@ -41,6 +41,9 @@ export default defineConfig({
         // Pemindai wasm (~1 MB) hanya dibutuhkan browser tanpa BarcodeDetector bawaan (iOS),
         // jadi tidak di-precache untuk semua orang; di-cache saat pertama kali diambil.
         globIgnores: ['**/*.wasm'],
+        // Peta dipakai sebagai PNG asli tanpa kompres (bisa belasan MiB), jadi batas default 2 MiB
+        // dinaikkan agar peta tetap di-precache untuk mode offline. Cloudflare membatasi 25 MiB/file.
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.endsWith('.wasm'),

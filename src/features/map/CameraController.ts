@@ -3,6 +3,7 @@ import {
   type CameraLimits,
   type Point,
   type Size,
+  type ZoomOptions,
   centerOn,
   clamp,
   clampCamera,
@@ -27,10 +28,10 @@ const MAX_FLING_VELOCITY = 3.5
 /** Langkah animasi; kembalikan `true` bila selesai. */
 type Animation = (now: number) => boolean
 
-export interface CameraControllerOptions {
-  /** Zoom maksimum relatif terhadap skala "cover". */
-  maxZoom: number
-}
+export type CameraControllerOptions = Pick<
+  ZoomOptions,
+  'maxZoom' | 'maxPhysicalPixelsPerImagePixel'
+>
 
 /**
  * Pemilik state kamera. Menulis `transform` langsung ke DOM di requestAnimationFrame,
@@ -74,11 +75,14 @@ export class CameraController {
     this.element = null
   }
 
-  /** Dipanggil saat ukuran layar berubah (rotasi HP, address bar, resize). */
-  setViewport(viewport: Size) {
+  /**
+   * Dipanggil saat ukuran layar berubah (rotasi HP, address bar, resize) atau saat
+   * `devicePixelRatio` berubah (jendela pindah ke monitor lain).
+   */
+  setViewport(viewport: Size, devicePixelRatio: number) {
     if (viewport.width <= 0 || viewport.height <= 0) return
     const previous = this.limits
-    this.limits = createLimits(viewport, this.world, this.options.maxZoom)
+    this.limits = createLimits(viewport, this.world, { ...this.options, devicePixelRatio })
 
     if (!previous) {
       // Pertama kali: tampilkan seluruh peta (overview) di tengah.

@@ -18,7 +18,8 @@ import {
 
 const world = { width: 1975, height: 1028 }
 const phone = { width: 844, height: 390 }
-const limits = createLimits(phone, world, 4)
+const zoom = { maxZoom: 4, devicePixelRatio: 1, maxPhysicalPixelsPerImagePixel: 2.5 }
+const limits = createLimits(phone, world, zoom)
 
 describe('coverScale', () => {
   it('menutupi seluruh layar (tidak ada area kosong)', () => {
@@ -30,6 +31,37 @@ describe('coverScale', () => {
   it('memakai sisi yang paling "ketat" untuk layar tinggi', () => {
     const tablet = { width: 768, height: 1024 }
     expect(coverScale(tablet, world)).toBeCloseTo(1024 / 1028)
+  })
+})
+
+describe('createLimits', () => {
+  // Peta HD: cover di HP = 390/2161 ≈ 0.18, jadi 4x cover ≈ 0.72.
+  const hd = { width: 4150, height: 2161 }
+
+  it.each([
+    { dpr: 1, viewport: { width: 2560, height: 1440 } },
+    { dpr: 2, viewport: { width: 1440, height: 900 } },
+    { dpr: 3, viewport: { width: 1440, height: 900 } },
+  ])('zoom maksimum dibatasi resolusi gambar untuk DPR $dpr', ({ dpr, viewport }) => {
+    const l = createLimits(viewport, hd, { ...zoom, devicePixelRatio: dpr })
+    // 1 piksel gambar = tepat 2.5 piksel fisik, masih di bawah 4x cover dan di atas 1.5x cover.
+    expect(l.maxScale).toBeCloseTo(2.5 / dpr)
+    expect(l.maxScale).toBeLessThan(l.minScale * 4)
+    expect(l.maxScale).toBeGreaterThan(l.minScale * 1.5)
+  })
+
+  it('selalu menyisakan minimal 1.5x zoom walau gambarnya kecil', () => {
+    const tiny = { width: 400, height: 208 }
+    for (const dpr of [1, 2, 3]) {
+      const l = createLimits(phone, tiny, { ...zoom, devicePixelRatio: dpr })
+      expect(l.maxScale).toBeCloseTo(l.minScale * 1.5)
+    }
+  })
+
+  it('untuk gambar besar, batasnya kembali ke maxZoom (4x)', () => {
+    const l = createLimits(phone, hd, { ...zoom, devicePixelRatio: 3 })
+    expect(l.minScale * 4 * 3).toBeLessThan(2.5)
+    expect(l.maxScale).toBeCloseTo(l.minScale * 4)
   })
 })
 

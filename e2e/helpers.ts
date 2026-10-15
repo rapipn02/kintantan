@@ -100,13 +100,11 @@ export async function tapExhibit(page: Page, exhibitId: string) {
   await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2)
 }
 
-/** Koordinat layar untuk titik di peta (piksel gambar). */
-export async function screenPoint(page: Page, world: { x: number; y: number }) {
+/**
+ * Koordinat layar untuk titik di peta, dalam koordinat ternormalisasi 0–1 (sama seperti
+ * `exhibits.ts`), jadi tidak bergantung pada resolusi gambar peta.
+ */
+export async function screenPoint(page: Page, point: { x: number; y: number }) {
   const rect = await worldRect(page)
-  // Lebar asli peta (sebelum transform kamera) = ukuran gambar peta.
-  const worldWidth = await page
-    .getByTestId('map-world')
-    .evaluate((el) => (el as HTMLElement).offsetWidth)
-  const scale = rect.width / worldWidth
-  return { x: rect.x + world.x * scale, y: rect.y + world.y * scale }
+  return { x: rect.x + point.x * rect.width, y: rect.y + point.y * rect.height }
 }

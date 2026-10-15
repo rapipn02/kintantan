@@ -40,13 +40,31 @@ export function MapViewport({ ref, selectedId, onSelect, onBackgroundTap }: Prop
     const world = worldRef.current
     if (!container || !world) return
     controller.attach(world)
-    controller.setViewport({ width: container.clientWidth, height: container.clientHeight })
-    const observer = new ResizeObserver(() => {
-      controller.setViewport({ width: container.clientWidth, height: container.clientHeight })
-    })
+    const update = () =>
+      controller.setViewport(
+        { width: container.clientWidth, height: container.clientHeight },
+        window.devicePixelRatio,
+      )
+    update()
+    const observer = new ResizeObserver(update)
     observer.observe(container)
+
+    // Pindah ke monitor dengan DPR lain sering tidak mengubah ukuran CSS, jadi pantau DPR juga.
+    let dprQuery: MediaQueryList | null = null
+    const watchDpr = () => {
+      dprQuery?.removeEventListener('change', onDprChange)
+      dprQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+      dprQuery.addEventListener('change', onDprChange)
+    }
+    const onDprChange = () => {
+      update()
+      watchDpr()
+    }
+    watchDpr()
+
     return () => {
       observer.disconnect()
+      dprQuery?.removeEventListener('change', onDprChange)
       controller.detach()
     }
   }, [controller])

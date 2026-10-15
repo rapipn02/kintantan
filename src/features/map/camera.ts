@@ -41,9 +41,31 @@ export function coverScale(viewport: Size, world: Size): number {
   return Math.max(viewport.width / world.width, viewport.height / world.height)
 }
 
-export function createLimits(viewport: Size, world: Size, maxZoom: number): CameraLimits {
+export interface ZoomOptions {
+  /** Zoom maksimum relatif terhadap skala "cover". */
+  maxZoom: number
+  /** Piksel fisik per piksel CSS layar. */
+  devicePixelRatio: number
+  /** Batas ketajaman: berapa piksel fisik layar yang boleh dipakai untuk 1 piksel gambar. */
+  maxPhysicalPixelsPerImagePixel: number
+}
+
+/** Zoom out minimal sejauh ini (relatif "cover") tetap tersedia walau gambarnya kecil. */
+const MIN_ZOOM_RANGE = 1.5
+
+/**
+ * Batas kamera. Zoom maksimum mengikuti resolusi gambar: berhenti saat 1 piksel gambar
+ * memakai `maxPhysicalPixelsPerImagePixel` piksel fisik, tapi tidak melebihi `maxZoom`
+ * dan selalu menyisakan minimal 1.5x zoom.
+ */
+export function createLimits(viewport: Size, world: Size, zoom: ZoomOptions): CameraLimits {
   const minScale = coverScale(viewport, world)
-  return { viewport, world, minScale, maxScale: minScale * maxZoom }
+  const sharpScale = zoom.maxPhysicalPixelsPerImagePixel / zoom.devicePixelRatio
+  const maxScale = Math.max(
+    minScale * MIN_ZOOM_RANGE,
+    Math.min(minScale * zoom.maxZoom, sharpScale),
+  )
+  return { viewport, world, minScale, maxScale }
 }
 
 /** Rentang translasi yang sah untuk skala tertentu (peta tidak boleh lepas dari tepi layar). */

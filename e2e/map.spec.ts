@@ -50,8 +50,22 @@ test('pinch zoom dibatasi antara seluruh peta dan zoom maksimum', async ({ page 
   for (let i = 0; i < 4; i++) await pinch(page, center, 80, 400)
   await waitForCameraToSettle(page)
   await expectMapCoversViewport(page)
-  // Zoom maksimum = 4x tampilan "cover" (lebar peta = lebar layar).
-  expect((await worldRect(page)).width).toBeCloseTo(VIEWPORT.width * 4, 0)
+
+  // Zoom maksimum mengikuti resolusi gambar & DPR (lihat `createLimits` di camera.ts).
+  const { dpr, worldWidth, worldHeight } = await page.getByTestId('map-world').evaluate((el) => ({
+    dpr: window.devicePixelRatio,
+    worldWidth: (el as HTMLElement).offsetWidth,
+    worldHeight: (el as HTMLElement).offsetHeight,
+  }))
+  const cover = Math.max(VIEWPORT.width / worldWidth, VIEWPORT.height / worldHeight)
+  const maxScale = Math.max(cover * 1.5, Math.min(cover * 4, 2.5 / dpr))
+  const maxWidth = (await worldRect(page)).width
+  expect(maxWidth).toBeCloseTo(worldWidth * maxScale, 0)
+
+  // Pinch tambahan tidak menambah zoom.
+  await pinch(page, center, 80, 400)
+  await waitForCameraToSettle(page)
+  expect((await worldRect(page)).width).toBeCloseTo(maxWidth, 0)
 
   for (let i = 0; i < 5; i++) await pinch(page, center, 400, 60)
   await waitForCameraToSettle(page)
@@ -68,7 +82,7 @@ test('tap hewan membuka panel, tap area kosong menutupnya', async ({ page }) => 
   await expect(page.locator('[data-exhibit="gajah"]')).toHaveAttribute('aria-pressed', 'true')
 
   // Jalan setapak kosong di antara burung dan rusa.
-  const empty = await screenPoint(page, { x: 560, y: 640 })
+  const empty = await screenPoint(page, { x: 0.28, y: 0.615 })
   await page.touchscreen.tap(empty.x, empty.y)
   await expect(panel).toBeHidden()
 })
@@ -84,7 +98,7 @@ test('menggeser peta yang dimulai di atas hewan tidak membuka panel', async ({ p
 test('double-tap memperbesar peta', async ({ page }) => {
   await startGame(page)
   const before = (await worldRect(page)).width
-  const empty = await screenPoint(page, { x: 560, y: 640 })
+  const empty = await screenPoint(page, { x: 0.28, y: 0.615 })
   await page.touchscreen.tap(empty.x, empty.y)
   await page.touchscreen.tap(empty.x, empty.y)
   await waitForCameraToSettle(page)
