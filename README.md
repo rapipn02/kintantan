@@ -9,9 +9,12 @@ menambah koleksi (seperti Pokémon).
 ## Fitur v1
 
 - Peta full-screen dengan pan, pinch zoom, double-tap zoom, inersia, efek karet di tepi, dan batas zoom.
-- 57 hewan bisa dipencet. Badge `?` menandai hewan yang belum ditemukan, `✓` yang sudah.
-- Panel info singkat dan tombol **Scan QR**. Pemindai memakai kamera belakang, ada tombol senter,
-  dan kode bisa diketik manual kalau kamera bermasalah.
+- 57 hewan bisa dipencet. Badge ✗ menandai hewan yang belum ditemukan, ✓ yang sudah (sesuai
+  desain).
+- Baris atas sesuai desain: progres koleksi, tombol **Scan Barcode** (scan QR kandang mana pun tanpa
+  memilih hewan dulu), dan **Petunjuk Penggunaan** (otomatis tampil sekali saat pertama main).
+- Pencet hewan untuk membuka panel info singkat dengan tombol **Scan QR**. Pemindai memakai kamera
+  belakang, ada tombol senter, dan kode bisa diketik manual kalau kamera bermasalah.
 - Kartu "Hewan Baru Ditemukan!" dengan progres koleksi. Isi info lengkap (habitat, makanan, fakta)
   menyusul di fitur berikutnya.
 - QR berisi URL `https://<domain>/s/<token>`, jadi juga bisa discan dengan **kamera bawaan HP**
@@ -46,6 +49,9 @@ e2e/              tes Playwright (HP landscape, kamera palsu berisi QR, mode off
 
 ## Menjalankan
 
+Butuh **Node.js 22 atau lebih baru**. Unduh installer versi LTS dari https://nodejs.org, lalu buka
+ulang Terminal dan cek dengan `node -v`. MAMP/XAMPP tidak diperlukan.
+
 ```bash
 npm install
 npm run dev          # http://localhost:5173 (juga terbuka di jaringan lokal)
@@ -78,8 +84,9 @@ peta). Koordinat ini tidak bergantung pada resolusi export, jadi selama komposis
 sama, data posisi tidak perlu diubah. Rumusnya: `x = posisi X layer / lebar frame`, begitu juga
 untuk `y`, `w`, dan `h`.
 
-Catatan: gambar komposit sekarang masih memuat dua ikon "x" merah sisa Figma (dekat macaw dan ular
-sanca) yang perlu dibersihkan saat export ulang.
+Catatan: peta sekarang adalah export desain 2000×1041 px. Dua ikon "x" merah sisa Figma (dekat macaw
+dan ular sanca) sudah dihapus otomatis, tapi masih menyisakan sedikit bekas samar. Export ulang dari
+Figma tanpa ikon itu, dengan skala 2–3×, akan membuat peta lebih tajam saat di-zoom.
 
 ## QR & NFC kandang
 

@@ -69,3 +69,22 @@ export const PhoneRotateIcon = (props: IconProps) => (
     <path d="M22 37h4" />
   </svg>
 )
+
+export const HelpIcon = (props: IconProps) => (
+  <svg {...base} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.8M12 17.2h.01" />
+  </svg>
+)
+
+export const HandIcon = (props: IconProps) => (
+  <svg {...base} {...props}>
+    <path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11M12 10V4.5a1.5 1.5 0 0 1 3 0V11M15 10.5V6.5a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6.5 7-3 0-4.5-1.5-6-4l-2-3.5a1.5 1.5 0 0 1 2.6-1.5L9 13.5V8.5a1.5 1.5 0 0 0-3 0" />
+  </svg>
+)
+
+export const StarIcon = (props: IconProps) => (
+  <svg {...base} {...props}>
+    <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z" />
+  </svg>
+)

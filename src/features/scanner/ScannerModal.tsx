@@ -3,8 +3,8 @@ import { CloseIcon, FlashIcon, KeyboardIcon } from '../../shared/ui/icons.tsx'
 import { type ScannerError, useQrScanner } from './useQrScanner.ts'
 
 interface Props {
-  /** Nama hewan yang sedang dicari, untuk judul. */
-  targetName: string
+  /** Nama hewan yang sedang dicari; kosong bila dibuka dari tombol "Scan Barcode". */
+  targetName?: string
   /** Kembalikan `true` bila kode diterima (scanner akan ditutup oleh pemanggil). */
   onCode: (raw: string) => boolean
   onClose: () => void
@@ -72,7 +72,7 @@ export default function ScannerModal({ targetName, onCode, onClose }: Props) {
       className="absolute inset-0 z-50 animate-fade-in overflow-hidden bg-black text-white"
       role="dialog"
       aria-modal="true"
-      aria-label={`Scan QR kandang ${targetName}`}
+      aria-label={targetName ? `Scan QR kandang ${targetName}` : 'Scan Barcode'}
     >
       <video
         ref={videoRef}
@@ -108,8 +108,10 @@ export default function ScannerModal({ targetName, onCode, onClose }: Props) {
       <div className="safe-pad absolute inset-0 flex flex-col">
         <header className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm text-white/75">Scan QR di kandang</p>
-            <h2 className="text-2xl leading-tight font-bold">{targetName}</h2>
+            <p className="text-sm text-white/75">
+              {targetName ? 'Scan QR di kandang' : 'Scan QR di papan kandang hewan mana pun'}
+            </p>
+            <h2 className="text-2xl leading-tight font-bold">{targetName ?? 'Scan Barcode'}</h2>
           </div>
           <button
             type="button"

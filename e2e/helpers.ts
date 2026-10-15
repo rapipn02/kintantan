@@ -2,12 +2,15 @@ import { expect, type Page } from '@playwright/test'
 import { EXHIBITS } from '../src/features/exhibits/catalog.ts'
 
 export const VIEWPORT = { width: 844, height: 390 }
-export const WORLD = { width: 1975, height: 1028 }
-
 export function tokenOf(exhibitId: string): string {
   const exhibit = EXHIBITS.find((e) => e.id === exhibitId)
   if (!exhibit) throw new Error(`exhibit ${exhibitId} tidak ada`)
   return exhibit.token
+}
+
+/** Anggap petunjuk penggunaan sudah pernah dibaca (supaya tidak menutupi peta di tes lain). */
+export async function skipHelp(page: Page) {
+  await page.addInitScript(() => localStorage.setItem('kintantan:help-seen', '1'))
 }
 
 export async function startGame(page: Page) {
@@ -100,6 +103,10 @@ export async function tapExhibit(page: Page, exhibitId: string) {
 /** Koordinat layar untuk titik di peta (piksel gambar). */
 export async function screenPoint(page: Page, world: { x: number; y: number }) {
   const rect = await worldRect(page)
-  const scale = rect.width / WORLD.width
+  // Lebar asli peta (sebelum transform kamera) = ukuran gambar peta.
+  const worldWidth = await page
+    .getByTestId('map-world')
+    .evaluate((el) => (el as HTMLElement).offsetWidth)
+  const scale = rect.width / worldWidth
   return { x: rect.x + world.x * scale, y: rect.y + world.y * scale }
 }

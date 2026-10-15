@@ -3,6 +3,10 @@ import { findExhibitByToken } from '../features/exhibits/catalog.ts'
 import { useDiscoveryStore } from '../features/discovery/discoveryStore.ts'
 import { extractToken } from '../features/scanner/parseScanResult.ts'
 import { vibrate } from '../shared/lib/haptics.ts'
+import { readFlag, writeFlag } from '../shared/lib/storage.ts'
+
+/** Petunjuk penggunaan otomatis tampil sekali, saat pertama kali bermain. */
+export const HELP_SEEN_KEY = 'kintantan:help-seen'
 
 /** new = baru ditemukan, again = scan ulang kandang yang sama, view = buka kartu dari panel. */
 export type RevealKind = 'new' | 'again' | 'view'
@@ -21,11 +25,17 @@ interface Toast {
   message: string
 }
 
+interface ScannerState {
+  /** Hewan yang dipilih sebelum scan; null bila dibuka dari tombol "Scan Barcode". */
+  targetId: string | null
+}
+
 interface GameState {
   phase: 'intro' | 'playing'
   selectedId: string | null
-  /** Exhibit yang sedang discan (scanner terbuka) atau null. */
-  scanningFor: string | null
+  /** null = kamera tertutup. */
+  scanner: ScannerState | null
+  helpOpen: boolean
   reveal: Reveal | null
   /** Kartu dari deep link yang ditunda sampai layar pembuka ditutup. */
   pendingReveal: Reveal | null
@@ -34,8 +44,11 @@ interface GameState {
   /** Tutup layar pembuka; mengembalikan kartu yang tertunda (bila ada). */
   start: () => Reveal | null
   select: (exhibitId: string | null) => void
-  openScanner: () => void
+  /** Buka kamera untuk hewan tertentu, atau untuk QR kandang mana pun (`null`). */
+  openScanner: (targetId: string | null) => void
   closeScanner: () => void
+  openHelp: () => void
+  closeHelp: () => void
   /** Proses hasil scan QR, ketikan kode, atau deep link. */
   claim: (raw: string) => ClaimResult
   viewCard: (exhibitId: string) => void
@@ -50,25 +63,32 @@ let toastId = 0
 export const useGameStore = create<GameState>()((set, get) => ({
   phase: 'intro',
   selectedId: null,
-  scanningFor: null,
+  scanner: null,
+  helpOpen: false,
   reveal: null,
   pendingReveal: null,
   toast: null,
 
   start: () => {
     const pending = get().pendingReveal
-    set({ phase: 'playing', reveal: pending, pendingReveal: null })
+    // Yang datang dari QR langsung melihat kartunya; petunjuk bisa dibuka nanti dari tombol.
+    const showHelp = !pending && !readFlag(HELP_SEEN_KEY)
+    set({ phase: 'playing', reveal: pending, pendingReveal: null, helpOpen: showHelp })
     return pending
   },
 
   select: (exhibitId) => set({ selectedId: exhibitId }),
 
-  openScanner: () => {
-    const { selectedId } = get()
-    if (selectedId) set({ scanningFor: selectedId })
-  },
+  openScanner: (targetId) => set({ scanner: { targetId } }),
 
-  closeScanner: () => set({ scanningFor: null }),
+  closeScanner: () => set({ scanner: null }),
+
+  openHelp: () => set({ helpOpen: true }),
+
+  closeHelp: () => {
+    writeFlag(HELP_SEEN_KEY)
+    set({ helpOpen: false })
+  },
 
   claim: (raw) => {
     const token = extractToken(raw)
@@ -76,14 +96,15 @@ export const useGameStore = create<GameState>()((set, get) => ({
     if (!exhibit) return { ok: false }
 
     const isNew = useDiscoveryStore.getState().discover(exhibit.id)
-    const { scanningFor, phase } = get()
+    const { scanner, phase } = get()
+    const targetId = scanner?.targetId
     const reveal: Reveal = {
       exhibitId: exhibit.id,
       kind: isNew ? 'new' : 'again',
-      expectedId: scanningFor && scanningFor !== exhibit.id ? scanningFor : undefined,
+      expectedId: targetId && targetId !== exhibit.id ? targetId : undefined,
     }
     if (phase === 'intro') set({ pendingReveal: reveal, selectedId: exhibit.id })
-    else set({ reveal, scanningFor: null, selectedId: exhibit.id })
+    else set({ reveal, scanner: null, selectedId: exhibit.id })
 
     vibrate(isNew ? [40, 60, 80] : 30)
     return { ok: true, exhibitId: exhibit.id, isNew }

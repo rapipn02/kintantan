@@ -53,7 +53,9 @@ export const ExhibitMarker = memo(function ExhibitMarker({
         />
       )}
       <span className="marker-badge" data-found={found} aria-hidden="true">
-        {found ? '✓' : '?'}
+        <svg viewBox="0 0 24 24">
+          <path d={found ? 'M5 12.5l4.5 4.5L19 7.5' : 'M7 7l10 10M17 7L7 17'} />
+        </svg>
       </span>
     </button>
   )

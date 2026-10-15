@@ -3,6 +3,7 @@ import {
   expectMapCoversViewport,
   pinch,
   screenPoint,
+  skipHelp,
   startGame,
   swipe,
   tapExhibit,
@@ -13,6 +14,7 @@ import {
 } from './helpers.ts'
 
 test.beforeEach(async ({ page }) => {
+  await skipHelp(page)
   await page.goto('/')
 })
 

@@ -78,7 +78,11 @@ function PanelContent({ exhibitId }: { exhibitId: string }) {
               Lihat Kartu
             </button>
           ) : (
-            <button type="button" className="btn-primary w-full" onClick={openScanner}>
+            <button
+              type="button"
+              className="btn-primary w-full"
+              onClick={() => openScanner(exhibit.id)}
+            >
               <CameraIcon className="size-6" /> Scan QR
             </button>
           )}

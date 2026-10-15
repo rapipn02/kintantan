@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { startGame, tapExhibit, tokenOf } from './helpers.ts'
+import { skipHelp, startGame, tapExhibit, tokenOf } from './helpers.ts'
 
 test.use({ serviceWorkers: 'allow' })
 
 test('setelah dibuka sekali, web tetap jalan tanpa sinyal', async ({ page, context }) => {
+  await skipHelp(page)
   await page.goto('/')
   // Tunggu service worker aktif & precache selesai.
   await page.evaluate(async () => {
