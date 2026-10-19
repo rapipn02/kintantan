@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useGameStore } from '../../app/gameStore.ts'
-import berhasil from '../../assets/desain/scan-berhasil.png'
+import berhasil from '../../assets/desain/scan-berhasil.webp'
 import { containWidth, type DesignImage } from '../../shared/ui/designImage.ts'
 
 /** Lama popup tampil sebelum otomatis lanjut ke kartu hewan. */

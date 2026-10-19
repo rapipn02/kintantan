@@ -4,6 +4,8 @@ import { InfoIcon, ScanQrIcon, ShrinkIcon } from '../../shared/ui/icons.tsx'
 
 interface Props {
   onScan: () => void
+  /** Jari baru menyentuh tombol scan (sebelum diangkat): kesempatan menyiapkan scanner. */
+  onScanIntent?: () => void
   onHelp: () => void
   onOverview: () => void
 }
@@ -13,7 +15,7 @@ interface Props {
  * di kanan atas.
  * Atribut `data-tour` dipakai tur pengenalan untuk menyorot tiap elemen.
  */
-export function Hud({ onScan, onHelp, onOverview }: Props) {
+export function Hud({ onScan, onScanIntent, onHelp, onOverview }: Props) {
   const found = useFoundCount()
   return (
     <>
@@ -34,6 +36,7 @@ export function Hud({ onScan, onHelp, onOverview }: Props) {
           aria-label="Scan Barcode"
           title="Scan QR kandang"
           data-tour="scan"
+          onPointerDown={onScanIntent}
           onClick={onScan}
         >
           <ScanQrIcon />

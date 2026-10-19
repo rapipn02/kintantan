@@ -74,9 +74,10 @@ teman desainer meng-export:
 2. **Tiap hewan sebagai PNG transparan** (export 2×) → `assets-src/sprites/<id-hewan>.png`. Nama
    file harus sama dengan `id` di `src/features/exhibits/data/exhibits.ts` (mis. `singa.png`,
    `rusa-totol-2.png`).
-3. **Gambar desain (tur, scanner, popup "Pindai berhasil", kartu hewan)** → `assets-src/desain/`.
-   Dipakai **persis apa adanya** (disalin byte-per-byte, tidak dipotong/diedit); aplikasi hanya
-   mengatur letak dan ukuran tampilnya. Tombol yang tergambar (mis. "Lanjut", "Taksonomi", speaker)
+3. **Gambar desain (tur, scanner, popup "Pindai berhasil", kartu hewan)** → `assets-src/desain/`
+   (PNG asli). Gambar **tidak diedit/dipotong sama sekali**: `npm run assets` menyimpannya sebagai
+   WebP lossless yang piksel-identik (lihat di bawah); aplikasi hanya mengatur letak dan ukuran
+   tampilnya. Tombol yang tergambar (mis. "Lanjut", "Taksonomi", speaker)
    diberi area tekan transparan; letaknya (px gambar asli) ada di `IntroTour.tsx`,
    `ScannerModal.tsx`, dan `src/features/discovery/cardDesigns.ts`. Kartu hewan per spesies:
    `kartu-<id-spesies>.png` + `taksonomi-<id-spesies>.png`, lalu daftarkan di `cardDesigns.ts`.
@@ -98,33 +99,28 @@ tetap punya kartu dengan keterangan "segera hadir".
 Kalau sprite tersedia, hewan otomatis digambar dari sprite, dan hewan yang belum ditemukan tampil
 sebagai **siluet**. Kalau sprite belum ada, peta komposit dipakai apa adanya.
 
-### Peta dipakai apa adanya
+### Gambar tidak diedit: WebP lossless piksel-identik
 
-- Peta **tidak dikompres, di-resize, atau dikonversi**. `npm run assets` hanya menyalin
-  `assets-src/map.png` byte-per-byte ke `src/assets/map/base.png`, lalu membuat `base.meta.json`
-  (ukuran gambar + LQIP mini 48 px sebagai data URI, dibuat terpisah dari peta). Hash file asli,
-  `assets-src/map.png`, `src/assets/map/base.png`, dan `dist/assets/base-<hash>.png` selalu sama.
+- Peta dan semua gambar desain disimpan sebagai **WebP lossless** (opsi `exact`), bukan dikompres
+  lossy, di-resize, atau diedit. `npm run assets` mendekode ulang setiap hasil dan membandingkan
+  **seluruh piksel** (termasuk area transparan) dengan PNG asli; satu piksel beda saja langsung
+  membatalkan proses. Hasilnya sama persis secara visual, tapi file 35–55% lebih kecil
+  (total 8,1 MiB → 4,7 MiB; peta 4,3 → 2,7 MiB). PNG asli tetap di `assets-src/`.
+- `base.meta.json` berisi ukuran peta + LQIP mini 48 px (data URI, dibuat terpisah dari peta).
 - **Masukkan file HD langsung ke `assets-src/map.png`** (salin dari export Figma / Google Drive).
-  Jangan lewat chat AI: chat mengecilkan dan mengompres gambar yang diunggah, sehingga peta jadi
-  buram saat di-zoom.
-- **Batas 25 MiB per file** di Cloudflare Workers Static Assets. PNG yang lebih besar gagal
-  di-deploy. Precache service worker (`maximumFileSizeToCacheInBytes` di `vite.config.ts`) diset
-  30 MiB supaya peta tetap tersedia offline.
+  Jangan lewat chat AI: chat mengecilkan dan mengompres gambar yang diunggah.
+- **Jangan taruh file desain di `public/`**: semua isi `public/` ikut tersalin ke hasil build dan
+  ikut diunduh pengunjung. `npm run check:dist` (otomatis saat deploy) menolak build seperti itu.
 - Usahakan ≤ 16 megapiksel. Gambar yang lebih besar berisiko gagal tampil di iPhone lama (batas
   memori gambar Safari), jadi tes di iPhone asli.
 - **Zoom maksimum otomatis mengikuti resolusi gambar**: zoom berhenti saat 1 piksel gambar ≈ 2.5
   piksel fisik layar (`CAMERA.maxPhysicalPixelsPerImagePixel`), maksimal 4× tampilan seluruh peta
-  (`CAMERA.maxZoom`), dan selalu menyisakan minimal 1.5× zoom. Makin besar resolusi peta, makin
-  dalam zoom yang tetap tajam di layar Retina.
+  (`CAMERA.maxZoom`), dan selalu menyisakan minimal 1.5× zoom.
 
 Posisi hewan ada di `exhibits.ts` sebagai koordinat **ternormalisasi** (0–1 terhadap lebar/tinggi
 peta). Koordinat ini tidak bergantung pada resolusi export, jadi selama komposisi peta di Figma
 sama, data posisi tidak perlu diubah. Rumusnya: `x = posisi X layer / lebar frame`, begitu juga
 untuk `y`, `w`, dan `h`.
-
-Catatan: peta sekarang adalah export desain 2000×1041 px. Dua ikon "x" merah sisa Figma (dekat macaw
-dan ular sanca) sudah dihapus otomatis, tapi masih menyisakan sedikit bekas samar. Export ulang dari
-Figma tanpa ikon itu, dengan skala 2–3×, akan membuat peta lebih tajam saat di-zoom.
 
 ## QR & NFC kandang
 
@@ -142,23 +138,22 @@ spesiesnya di `species.ts` dan exhibit baru di `exhibits.ts` dengan token acak 8
 yang boleh dipakai adalah `a-z` dan `2-9`, tanpa `i`, `l`, `o`, `0`, atau `1`. Tes unit memeriksa
 keunikan dan formatnya.
 
-## Deploy ke Cloudflare
+## Deploy (VPS + Cloudflare)
+
+Situs ini 100% statis. Production: **Nginx di VPS** sebagai sumber, dengan **Cloudflare (proxy,
+gratis)** di depannya. Cloudflare menyimpan gambar & JS di server terdekat pengunjung, jadi
+bandwidth VPS hampir tidak terpakai. Panduan lengkap (sekali setup + alasan pilihannya):
+[`deploy/README.md`](deploy/README.md).
 
 ```bash
-npx wrangler login
-npm run deploy       # build + wrangler deploy (Workers Static Assets)
+VPS=user@ip-vps npm run deploy   # build + cek dist + upload + ganti rilis (atomik)
+npm run check:dist               # cek isi dist/ & ukuran unduhan
 ```
 
-- `wrangler.jsonc` menyajikan `dist/` sebagai situs statis di edge. Path seperti `/s/<token>`
-  dijawab dengan `index.html` (SPA).
-- `public/_headers` mengatur cache dan keamanan:
-  - File ber-hash (`/assets/*`) di-cache selamanya (`immutable`). `index.html`, `sw.js`, dan
-    manifest selalu dicek ulang, jadi rilis baru langsung sampai ke pengunjung.
-  - CSP ketat, dan kamera hanya diizinkan untuk domain sendiri.
-- Cara lain: Cloudflare Pages dengan Git integration (build command `npm run build`, output
-  `dist`). `_headers` juga berlaku di sana.
+Alternatif tanpa VPS: `npm run deploy:cloudflare` (Cloudflare Workers Static Assets, pakai
+`wrangler.jsonc` + `public/_headers`).
 
-Uji hasil deploy dengan Playwright: `E2E_BASE_URL=https://domain-preview npm run test:e2e`.
+Uji hasil deploy dengan Playwright: `E2E_BASE_URL=https://domainmu npm run test:e2e`.
 
 ## Catatan keamanan
 

@@ -1,11 +1,11 @@
 /**
  * Pipeline aset: mengubah file mentah dari Figma (folder `assets-src/`) menjadi file siap pakai.
  *
- *   assets-src/map.png                   -> src/assets/map/base.png (disalin apa adanya)
+ *   assets-src/map.png                   -> src/assets/map/base.webp (WebP lossless, piksel identik)
  *                                           + base.meta.json (ukuran + LQIP)
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
- *   assets-src/desain/*.png              -> src/assets/desain/*.png (disalin apa adanya: tur, scanner,
- *                                           popup berhasil, kartu hewan)
+ *   assets-src/desain/*.png              -> src/assets/desain/*.webp (WebP lossless, piksel identik:
+ *                                           tur, scanner, popup berhasil, kartu hewan)
  *   assets-src/suara/<species-id>.mp3    -> src/assets/suara/<species-id>.mp3 (suara hewan, apa adanya)
  *   assets-src/photos/<species-id>.jpg   -> src/assets/photos/<species-id>.webp (foto di kartu hewan)
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
@@ -33,6 +33,27 @@ const IMAGE_EXT = /\.(webp|png|jpe?g|avif)$/i
  * Peta dipakai PERSIS seperti PNG asli dari desainer: disalin byte-per-byte, tanpa kompres,
  * resize, atau konversi. Yang dibuat hanya meta (ukuran) dan LQIP mini terpisah.
  */
+/**
+ * Simpan gambar sebagai WebP lossless yang PIKSEL-IDENTIK dengan aslinya (termasuk warna di area
+ * transparan, lewat `exact`), lalu buktikan: dekode ulang dan bandingkan seluruh piksel. Kalau ada
+ * satu piksel pun yang beda, pipeline berhenti. Hanya format file yang berubah, bukan gambarnya.
+ */
+async function toLosslessWebp(source: string, target: string) {
+  const webp = await sharp(source).webp({ lossless: true, exact: true, effort: 6 }).toBuffer()
+  const [original, decoded] = await Promise.all([
+    sharp(source).ensureAlpha().raw().toBuffer(),
+    sharp(webp).ensureAlpha().raw().toBuffer(),
+  ])
+  if (Buffer.compare(original, decoded) !== 0) {
+    throw new Error(`${path.basename(source)}: hasil WebP tidak piksel-identik, dibatalkan`)
+  }
+  await writeFile(target, webp)
+  return { before: (await stat(source)).size, after: webp.length }
+}
+
+const mib = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MiB`
+
+/** Peta: PNG asli dari desainer -> WebP lossless piksel-identik + meta (ukuran & LQIP). */
 async function buildMap() {
   const source = path.join(SRC, 'map.png')
   if (!existsSync(source)) throw new Error('assets-src/map.png tidak ditemukan')
@@ -41,7 +62,7 @@ async function buildMap() {
   for (const f of await readdir(OUT_MAP)) {
     if (/^base\.(webp|png|jpe?g|avif)$/i.test(f)) await rm(path.join(OUT_MAP, f))
   }
-  await copyFile(source, path.join(OUT_MAP, 'base.png'))
+  const size = await toLosslessWebp(source, path.join(OUT_MAP, 'base.webp'))
 
   const { width = 0, height = 0 } = await sharp(source).metadata()
   if (width < MIN_MAP_WIDTH) {
@@ -56,8 +77,32 @@ async function buildMap() {
 
   const meta = { width, height, lqip: `data:image/webp;base64,${lqip.toString('base64')}` }
   await writeFile(path.join(OUT_MAP, 'base.meta.json'), JSON.stringify(meta, null, 2) + '\n')
-  const bytes = (await stat(source)).size
-  console.log(`map: ${width}x${height}, ${(bytes / 1024 / 1024).toFixed(2)} MiB (apa adanya)`)
+  console.log(
+    `map: ${width}x${height}, ${mib(size.before)} -> ${mib(size.after)} (WebP lossless, piksel identik)`,
+  )
+}
+
+/** Gambar desain (tur, scanner, kartu): WebP lossless piksel-identik, tidak diedit sama sekali. */
+async function buildDesigns() {
+  const dir = path.join(SRC, 'desain')
+  if (!existsSync(dir)) return
+  const out = path.join(ROOT, 'src/assets/desain')
+  await rm(out, { recursive: true, force: true })
+  await mkdir(out, { recursive: true })
+  let before = 0
+  let after = 0
+  const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
+  for (const file of files) {
+    const size = await toLosslessWebp(
+      path.join(dir, file),
+      path.join(out, file.replace(IMAGE_EXT, '.webp')),
+    )
+    before += size.before
+    after += size.after
+  }
+  console.log(
+    `desain: ${files.length}, ${mib(before)} -> ${mib(after)} (WebP lossless, piksel identik)`,
+  )
 }
 
 async function buildSprites() {
@@ -147,7 +192,7 @@ async function buildIcons() {
 
 await buildMap()
 await buildSprites()
-await copyAsIs('desain', IMAGE_EXT)
+await buildDesigns()
 await copyAsIs('suara', /\.(mp3|m4a|ogg|wav)$/i)
 await buildFolder('photos', { width: MAX_PHOTO_SIZE, height: MAX_PHOTO_SIZE })
 await buildIcons()

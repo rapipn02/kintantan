@@ -172,6 +172,17 @@ test('kode bisa diketik manual bila kamera tidak tersedia', async ({ page }) => 
   await expect(page.getByRole('dialog', { name: 'Gajah Sumatera' })).toBeVisible()
 })
 
+test('layar scan langsung tampil dengan gambar desain (tanpa layar hitam)', async ({ page }) => {
+  await startGame(page)
+  await page.getByRole('button', { name: 'Scan Barcode' }).tap()
+  const scanner = page.getByRole('dialog', { name: 'Scan Barcode' })
+  await expect(scanner).toBeVisible()
+  // Gambar desain sudah di-preload, jadi langsung lengkap begitu layar scan muncul.
+  const design = scanner.locator('img').first()
+  await expect(design).toHaveJSProperty('complete', true, { timeout: 1000 })
+  expect(await design.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1120)
+})
+
 test('mode demo: kode sembarang di scanner tetap membuka kartu hewan', async ({ page }) => {
   await startGame(page)
   await page.getByRole('button', { name: 'Scan Barcode' }).tap()

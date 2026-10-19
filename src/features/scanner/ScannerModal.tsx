@@ -1,7 +1,6 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import scanDesign from '../../assets/desain/scan.png'
-import { boxStyle, containWidth, type DesignImage } from '../../shared/ui/designImage.ts'
-import { CloseIcon, FlashIcon, KeyboardIcon } from '../../shared/ui/icons.tsx'
+import { FlashIcon, KeyboardIcon } from '../../shared/ui/icons.tsx'
+import { ScannerFrame } from './ScannerFrame.tsx'
 import { type ScannerError, useQrScanner } from './useQrScanner.ts'
 
 interface Props {
@@ -22,15 +21,6 @@ const ERROR_TEXT: Record<ScannerError, string> = {
 
 /** Jeda sebelum QR asing yang sama boleh memicu pesan lagi. */
 const REJECT_COOLDOWN_MS = 2500
-
-/** Desain "Scan Barcode Hewan", dipakai apa adanya. */
-const DESIGN: DesignImage = { src: scanDesign, width: 1120, height: 913 }
-
-/**
- * Letak gambar kamera di dalam bingkai kuning desain (px gambar asli), tanpa menutupi daun di kiri
- * bawah dan hewan-hewan di kanan. Sebelum kamera menyala, "Kode Qr" di desain tetap terlihat.
- */
-const CAMERA_BOX = { x0: 197, y0: 311, x1: 916, y1: 680 }
 
 /**
  * Layar "Scan Barcode Hewan": kamera langsung menyala di dalam gambar desain.
@@ -84,26 +74,11 @@ export default function ScannerModal({ targetName, onCode, onClose }: Props) {
   const scanning = status === 'scanning'
 
   return (
-    <div
-      className="safe-pad absolute inset-0 z-50 grid animate-fade-in place-items-center bg-black/55"
-      role="dialog"
-      aria-modal="true"
-      aria-label={targetName ? `Scan QR kandang ${targetName}` : 'Scan Barcode'}
-    >
-      <div
-        className="relative"
-        style={{
-          width: containWidth(DESIGN, '100%', 'calc(100dvh - 20px)'),
-          aspectRatio: `${DESIGN.width} / ${DESIGN.height}`,
-        }}
-      >
-        <img src={DESIGN.src} alt="" className="size-full select-none" draggable={false} />
-        <p className="sr-only">
-          Scan Barcode Hewan. Arahkan kamera ke QR Code di dekat kandang
-          {targetName ? ` ${targetName}` : ''} ya!
-        </p>
-
-        <div className="overflow-hidden rounded-[10px]" style={boxStyle(CAMERA_BOX, DESIGN)}>
+    <ScannerFrame
+      targetName={targetName}
+      onClose={onClose}
+      camera={
+        <>
           <video
             ref={videoRef}
             className={`size-full object-cover transition-opacity duration-300 ${scanning ? 'opacity-100' : 'opacity-0'}`}
@@ -145,37 +120,29 @@ export default function ScannerModal({ targetName, onCode, onClose }: Props) {
               </button>
             </form>
           )}
-        </div>
-      </div>
-
-      {/* Tombol tambahan di luar gambar desain, supaya gambarnya tidak tertutup. */}
-      <button
-        type="button"
-        className="icon-btn absolute top-[max(env(safe-area-inset-top),10px)] right-[max(env(safe-area-inset-right),12px)]"
-        aria-label="Tutup kamera"
-        onClick={onClose}
-      >
-        <CloseIcon className="size-6" />
-      </button>
-      <div className="absolute right-[max(env(safe-area-inset-right),12px)] bottom-[max(env(safe-area-inset-bottom),10px)] flex flex-col items-end gap-2">
-        {torch.supported && (
-          <button
-            type="button"
-            className={`icon-btn ${torch.on ? 'bg-sun!' : ''}`}
-            aria-label={torch.on ? 'Matikan senter' : 'Nyalakan senter'}
-            aria-pressed={torch.on}
-            onClick={toggleTorch}
-          >
-            <FlashIcon className="size-6" />
-          </button>
-        )}
-        {!manual && (
-          <button type="button" className="btn-secondary" onClick={() => setManual(true)}>
-            <KeyboardIcon className="size-5" /> Ketik kode
-          </button>
-        )}
-      </div>
-    </div>
+        </>
+      }
+      controls={
+        <>
+          {torch.supported && (
+            <button
+              type="button"
+              className={`icon-btn ${torch.on ? 'bg-sun!' : ''}`}
+              aria-label={torch.on ? 'Matikan senter' : 'Nyalakan senter'}
+              aria-pressed={torch.on}
+              onClick={toggleTorch}
+            >
+              <FlashIcon className="size-6" />
+            </button>
+          )}
+          {!manual && (
+            <button type="button" className="btn-secondary" onClick={() => setManual(true)}>
+              <KeyboardIcon className="size-5" /> Ketik kode
+            </button>
+          )}
+        </>
+      }
+    />
   )
 }
 

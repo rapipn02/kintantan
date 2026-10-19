@@ -1,10 +1,39 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+/**
+ * Sisipkan <link rel="preload"> untuk gambar peta ke index.html, supaya peta mulai diunduh
+ * bersamaan dengan JavaScript (bukan menunggu React selesai render). Di jaringan lambat ini
+ * memotong satu putaran tunggu penuh.
+ */
+function preloadMap(): Plugin {
+  return {
+    name: 'kintantan:preload-map',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        const map = Object.keys(ctx.bundle ?? {}).find((file) =>
+          /^assets\/base-[\w-]+\.webp$/.test(file),
+        )
+        if (!map) return []
+        return [
+          {
+            tag: 'link',
+            attrs: { rel: 'preload', as: 'image', href: `/${map}`, fetchpriority: 'high' },
+            injectTo: 'head',
+          },
+        ]
+      },
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
+    preloadMap(),
     react(),
     tailwindcss(),
     VitePWA({

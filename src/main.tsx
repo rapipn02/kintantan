@@ -15,6 +15,13 @@ if (token !== undefined) {
   if (!result.ok) useGameStore.getState().showToast('QR tidak dikenali')
 }
 
+// Minta browser tidak menghapus cache offline (peta, desain) saat penyimpanan HP menipis.
+if ('serviceWorker' in navigator) {
+  void navigator.serviceWorker.ready
+    .then(() => navigator.storage?.persist?.())
+    .catch(() => undefined)
+}
+
 const root = document.getElementById('root')
 if (!root) throw new Error('#root tidak ditemukan')
 

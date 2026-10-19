@@ -1,5 +1,5 @@
-import kartuBeruangMadu from '../../assets/desain/kartu-beruang-madu.png'
-import taksonomiBeruangMadu from '../../assets/desain/taksonomi-beruang-madu.png'
+import kartuBeruangMadu from '../../assets/desain/kartu-beruang-madu.webp'
+import taksonomiBeruangMadu from '../../assets/desain/taksonomi-beruang-madu.webp'
 import type { DesignBox, DesignImage } from '../../shared/ui/designImage.ts'
 
 /** Kartu hewan dari desainer, dipakai apa adanya (tidak diedit). */

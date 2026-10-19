@@ -1,3 +1,5 @@
+import { whenIdle } from '../../shared/lib/preload.ts'
+
 export interface QrDetector {
   detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>>
 }
@@ -49,7 +51,5 @@ async function loadDetector(): Promise<QrDetector> {
 
 /** Siapkan detektor di waktu senggang supaya kamera langsung siap (dan wasm ter-cache untuk offline). */
 export function warmUpQrDetector() {
-  const run = () => void getQrDetector().catch(() => undefined)
-  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 5000 })
-  else setTimeout(run, 2000)
+  whenIdle(() => void getQrDetector().catch(() => undefined), 5000)
 }

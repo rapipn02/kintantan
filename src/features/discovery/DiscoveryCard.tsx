@@ -1,6 +1,6 @@
 import {
   type ComponentType,
-  type PointerEvent,
+  type MouseEvent,
   type ReactNode,
   type SVGProps,
   useCallback,
@@ -88,7 +88,9 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
   const lastTap = useRef(0)
 
   /** Sesuai petunjuk di desain kartu: "Klik dua kali tempat kosong untuk menutup". */
-  const handleBackdropTap = (event: PointerEvent<HTMLDivElement>) => {
+  // Pakai `click` (event terakhir dari satu ketukan), bukan pointerup: kalau kartu ditutup saat
+  // pointerup, click dari ketukan yang sama jatuh ke hewan di peta di bawah jari dan membukanya.
+  const handleBackdropTap = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return
     const now = event.timeStamp
     if (now - lastTap.current < DOUBLE_TAP_MS) onClose()
@@ -123,7 +125,7 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
   return (
     <div
       className="safe-pad absolute inset-0 z-40 flex animate-fade-in items-center justify-center gap-3 overflow-clip bg-bark/55"
-      onPointerUp={handleBackdropTap}
+      onClick={handleBackdropTap}
       role="dialog"
       aria-modal="true"
       aria-label={species.name}

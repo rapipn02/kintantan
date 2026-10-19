@@ -1,7 +1,10 @@
-import mapUrl from '../../assets/map/base.png'
+import mapUrl from '../../assets/map/base.webp'
 import mapMeta from '../../assets/map/base.meta.json'
 
-/** Peta dasar (PNG asli apa adanya). Ganti lewat `assets-src/map.png` lalu `npm run assets`. */
+/**
+ * Peta dasar: WebP lossless, piksel identik dengan PNG asli desainer.
+ * Ganti lewat `assets-src/map.png` lalu `npm run assets`.
+ */
 export const MAP = {
   src: mapUrl,
   width: mapMeta.width,

@@ -19,7 +19,9 @@
     "test:e2e": "playwright test",
     "assets": "tsx scripts/optimize-assets.ts",
     "qr": "tsx scripts/generate-qr.ts",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "bash scripts/deploy-vps.sh",
+    "check:dist": "tsx scripts/check-dist.ts",
+    "deploy:cloudflare": "npm run build && npm run check:dist && wrangler deploy"
   },
   "dependencies": {
     "@fontsource-variable/fredoka": "^5.3.0",
