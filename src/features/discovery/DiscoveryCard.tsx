@@ -177,7 +177,7 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
                 )}
               </header>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-[clamp(8px,1.4vw,16px)] pb-3">
+              <div className="min-h-0 flex-1 no-scrollbar overflow-y-auto px-[clamp(8px,1.4vw,16px)] pb-3">
                 <div
                   className="mx-auto mt-2 w-[62%] overflow-hidden rounded-[clamp(16px,2.4vw,28px)] bg-meadow shadow-[0_4px_10px_rgb(0_0_0/0.18)]"
                   style={{ aspectRatio: PHOTO_ASPECT }}
@@ -282,7 +282,7 @@ function DesignCardView({
   return (
     <>
       <article
-        className="relative max-h-full animate-pop-in overflow-y-auto"
+        className="relative max-h-full animate-pop-in no-scrollbar overflow-y-auto"
         style={{ width: DESIGN_CARD_WIDTH }}
       >
         <div
@@ -329,7 +329,7 @@ function DesignCardView({
         <aside
           id="taxonomy-panel"
           aria-label="Taksonomi"
-          className="relative max-h-full animate-slide-in-right overflow-y-auto"
+          className="relative max-h-full animate-slide-in-right no-scrollbar overflow-y-auto"
           style={{
             width: `calc(${DESIGN_CARD_WIDTH} * ${design.taxonomy.width / design.card.width})`,
           }}
@@ -355,7 +355,7 @@ function TaxonomyPanel({ taxonomy }: { taxonomy: Taxonomy }) {
     <aside
       id="taxonomy-panel"
       aria-label="Taksonomi"
-      className="animal-frame relative h-full max-h-[880px] w-[min(250px,30vw)] animate-slide-in-right overflow-y-auto"
+      className="animal-frame relative h-full max-h-[880px] w-[min(250px,30vw)] animate-slide-in-right no-scrollbar overflow-y-auto"
     >
       {TAXONOMY_ROWS.map(({ key, label, icon }) => (
         <InfoBox key={key} label={label} icon={icon} align="left">

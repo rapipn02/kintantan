@@ -396,6 +396,14 @@
   box-shadow: 0 4px 6px rgb(0 0 0 / 0.15);
 }
 
+/* Tetap bisa di-scroll (jari/roda mouse), tapi tanpa scrollbar yang terlihat. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Inset aman untuk notch/kamera depan saat HP landscape. */
 .safe-pad {
   padding-top: max(env(safe-area-inset-top), 10px);
