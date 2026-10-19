@@ -2,7 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../../app/gameStore.ts'
 import { preloadImage } from '../../shared/lib/preload.ts'
 import { boxStyle, containWidth } from '../../shared/ui/designImage.ts'
-import { TOUR_STEPS as STEPS } from './tourSteps.ts'
+import { TOUR_STEPS as STEPS, type TourStep } from './tourSteps.ts'
+
+/**
+ * Radius latar gelap di sudut gambar. Sedikit lebih besar dari sudut transparan gambar
+ * (+CORNER_OVERLAP px), supaya tepi halus keduanya saling menumpuk dan tidak menyisakan garis
+ * terang tipis di lengkungan sudut.
+ */
+const CORNER_OVERLAP = 1.5
+
+function cornerRadius({ image, cornerRadius: r = 0 }: TourStep) {
+  if (!r) return undefined
+  const radius = r + CORNER_OVERLAP
+  return `${(radius / image.width) * 100}% / ${(radius / image.height) * 100}%`
+}
 
 /** Tur pengenalan dengan macan pemandu: tampil otomatis sekali saat pertama main. */
 export function IntroTour() {
@@ -38,8 +51,7 @@ function Tour({ onDone }: { onDone: () => void }) {
   if (!step) return null
   return (
     <div
-      className="fixed inset-0 z-40 grid animate-fade-in place-items-center"
-      style={{ backgroundColor: `rgb(0 0 0 / ${step.backdrop / 255})` }}
+      className="fixed inset-0 z-40 grid animate-fade-in place-items-center overflow-clip"
       role="dialog"
       aria-modal="true"
       aria-label={`Panduan ${index + 1} dari ${STEPS.length}`}
@@ -51,6 +63,11 @@ function Tour({ onDone }: { onDone: () => void }) {
         style={{
           width: containWidth(step.image),
           aspectRatio: `${step.image.width} / ${step.image.height}`,
+          // Gambar tur sudah punya lapisan gelap sendiri. Latar gelap hanya digambar DI LUAR gambar
+          // (box-shadow), dengan warna yang sama dengan tepi gambar: tidak dobel di dalam gambar,
+          // tidak "setengah" di sampingnya. Radius mengikuti sudut transparan gambar.
+          boxShadow: `0 0 0 100vmax rgb(0 0 0 / ${step.backdrop / 255})`,
+          borderRadius: cornerRadius(step),
         }}
       >
         <img src={step.image.src} alt="" className="size-full select-none" draggable={false} />

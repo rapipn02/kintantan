@@ -15,6 +15,8 @@ export interface TourStep {
   text: string
   /** Gelap latar di luar gambar, disamakan dengan lapisan gelap di tepi gambar (alpha 0–255). */
   backdrop: number
+  /** Radius sudut transparan gambar (px gambar asli), supaya sudutnya ikut tertutup latar gelap. */
+  cornerRadius?: number
 }
 
 /**
@@ -28,6 +30,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     label: 'Lanjut',
     text: 'Halo Sobat! Mau tahu apa saja hal seru yang bisa kita lakuin di sini? Yuk, intip panduannya!',
     backdrop: 138,
+    cornerRadius: 29,
   },
   {
     image: { src: skor, width: 1920, height: 1080 },
