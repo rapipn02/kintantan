@@ -8,6 +8,7 @@ import { Toast } from '../features/hud/Toast.tsx'
 import { MapViewport, type MapViewportHandle } from '../features/map/MapViewport.tsx'
 import { RotateDeviceOverlay } from '../features/orientation/RotateDeviceOverlay.tsx'
 import { StartScreen } from '../features/orientation/StartScreen.tsx'
+import { IntroTour } from '../features/tour/IntroTour.tsx'
 import { warmUpQrDetector } from '../features/scanner/qrDetector.ts'
 import { useGameStore } from './gameStore.ts'
 
@@ -71,6 +72,7 @@ export function App() {
       )}
 
       <DiscoveryCard />
+      <IntroTour />
       <HelpDialog />
       {phase === 'intro' && <StartScreen onStart={handleStart} />}
       <Toast />

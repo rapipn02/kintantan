@@ -28,7 +28,7 @@ const STEPS: Step[] = [
   {
     icon: <QrIcon className="size-7" />,
     title: 'Scan di kandang',
-    text: 'Datangi kandangnya, tekan Scan Barcode, arahkan kamera ke QR di papan kandang.',
+    text: 'Datangi kandangnya, tekan tombol QR di kanan atas, arahkan kamera ke QR di papan kandang.',
   },
   {
     icon: <StarIcon className="size-7" />,
@@ -37,7 +37,7 @@ const STEPS: Step[] = [
   },
 ]
 
-/** Petunjuk Penggunaan: tampil otomatis sekali saat pertama main, bisa dibuka lagi dari tombol. */
+/** Petunjuk Penggunaan lengkap, dibuka dari tombol info (panduan tambahan). */
 export function HelpDialog() {
   const open = useGameStore((state) => state.helpOpen)
   const close = useGameStore((state) => state.closeHelp)

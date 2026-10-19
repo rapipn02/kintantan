@@ -4,6 +4,7 @@
  *   assets-src/map.png                   -> src/assets/map/base.png (disalin apa adanya)
  *                                           + base.meta.json (ukuran + LQIP)
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
+ *   assets-src/mascot/<pose>.png         -> src/assets/mascot/<pose>.webp (maskot macan tur pengenalan)
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
  *
  * Jalankan: npm run assets
@@ -17,11 +18,13 @@ const ROOT = path.resolve(import.meta.dirname, '..')
 const SRC = path.join(ROOT, 'assets-src')
 const OUT_MAP = path.join(ROOT, 'src/assets/map')
 const OUT_SPRITES = path.join(ROOT, 'src/assets/sprites')
+const OUT_MASCOT = path.join(ROOT, 'src/assets/mascot')
 const OUT_ICONS = path.join(ROOT, 'public/icons')
 
 /** Di bawah lebar ini peta mulai terlihat buram saat di-zoom di layar Retina. */
 const MIN_MAP_WIDTH = 3000
 const MAX_SPRITE_SIZE = 512
+const MAX_MASCOT_HEIGHT = 600
 const IMAGE_EXT = /\.(webp|png|jpe?g|avif)$/i
 
 /**
@@ -81,6 +84,24 @@ async function buildSprites() {
   console.log(`sprites: ${sprites.length}`)
 }
 
+async function buildMascots() {
+  const dir = path.join(SRC, 'mascot')
+  if (!existsSync(dir)) return
+  await mkdir(OUT_MASCOT, { recursive: true })
+  for (const f of await readdir(OUT_MASCOT)) {
+    if (f.endsWith('.webp')) await rm(path.join(OUT_MASCOT, f))
+  }
+
+  const poses = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
+  for (const file of poses) {
+    await sharp(path.join(dir, file))
+      .resize({ height: MAX_MASCOT_HEIGHT, withoutEnlargement: true })
+      .webp({ quality: 90, alphaQuality: 95, effort: 6 })
+      .toFile(path.join(OUT_MASCOT, file.replace(IMAGE_EXT, '.webp')))
+  }
+  console.log(`mascot: ${poses.length}`)
+}
+
 async function buildIcons() {
   const svg = path.join(SRC, 'icon.svg')
   await mkdir(OUT_ICONS, { recursive: true })
@@ -107,4 +128,5 @@ async function buildIcons() {
 
 await buildMap()
 await buildSprites()
+await buildMascots()
 await buildIcons()

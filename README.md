@@ -74,7 +74,10 @@ teman desainer meng-export:
 2. **Tiap hewan sebagai PNG transparan** (export 2×) → `assets-src/sprites/<id-hewan>.png`. Nama
    file harus sama dengan `id` di `src/features/exhibits/data/exhibits.ts` (mis. `singa.png`,
    `rusa-totol-2.png`).
-3. Jalankan `npm run assets`.
+3. **Maskot macan tur pengenalan** → `assets-src/mascot/<pose>.png` (PNG transparan): `macan-sapa`,
+   `macan-tunjuk` (otomatis dicerminkan untuk menunjuk ke kiri), dan `macan-bingung`. Versi
+   sekarang dipotong dari screenshot desain tur; export langsung dari Figma akan lebih tajam.
+4. Jalankan `npm run assets`.
 
 Kalau sprite tersedia, hewan otomatis digambar dari sprite, dan hewan yang belum ditemukan tampil
 sebagai **siluet**. Kalau sprite belum ada, peta komposit dipakai apa adanya.

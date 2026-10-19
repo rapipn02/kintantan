@@ -86,22 +86,24 @@ describe('discovery store', () => {
   })
 })
 
-describe('petunjuk penggunaan', () => {
-  it('tampil otomatis saat pertama main, lalu tidak lagi setelah ditutup', () => {
+describe('tur pengenalan', () => {
+  it('tampil otomatis saat pertama main, lalu tidak lagi setelah selesai', () => {
     startPlaying()
-    expect(useGameStore.getState().helpOpen).toBe(true)
-    useGameStore.getState().closeHelp()
+    expect(useGameStore.getState().tourOpen).toBe(true)
+    // Petunjuk lengkap tidak ikut terbuka; hanya lewat tombol info.
+    expect(useGameStore.getState().helpOpen).toBe(false)
+    useGameStore.getState().closeTour()
     expect(localStorage.getItem(HELP_SEEN_KEY)).toBe('1')
 
     useGameStore.setState(initial, true)
     startPlaying()
-    expect(useGameStore.getState().helpOpen).toBe(false)
+    expect(useGameStore.getState().tourOpen).toBe(false)
   })
 
   it('tidak menutupi kartu bagi pengunjung yang datang dari link QR', () => {
     useGameStore.getState().claim(lion.token)
     startPlaying()
     expect(useGameStore.getState().reveal?.exhibitId).toBe(lion.id)
-    expect(useGameStore.getState().helpOpen).toBe(false)
+    expect(useGameStore.getState().tourOpen).toBe(false)
   })
 })

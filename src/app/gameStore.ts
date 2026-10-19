@@ -5,7 +5,7 @@ import { extractToken } from '../features/scanner/parseScanResult.ts'
 import { vibrate } from '../shared/lib/haptics.ts'
 import { readFlag, writeFlag } from '../shared/lib/storage.ts'
 
-/** Petunjuk penggunaan otomatis tampil sekali, saat pertama kali bermain. */
+/** Tur pengenalan (macan pemandu) otomatis tampil sekali, saat pertama kali bermain. */
 export const HELP_SEEN_KEY = 'kintantan:help-seen'
 
 /** new = baru ditemukan, again = scan ulang kandang yang sama, view = buka kartu dari panel. */
@@ -35,6 +35,9 @@ interface GameState {
   selectedId: string | null
   /** null = kamera tertutup. */
   scanner: ScannerState | null
+  /** Tur pengenalan: menyorot skor, tombol QR, lihat seluruh peta, dan panduan. */
+  tourOpen: boolean
+  /** Petunjuk Penggunaan lengkap (tombol info). */
   helpOpen: boolean
   reveal: Reveal | null
   /** Kartu dari deep link yang ditunda sampai layar pembuka ditutup. */
@@ -47,6 +50,7 @@ interface GameState {
   /** Buka kamera untuk hewan tertentu, atau untuk QR kandang mana pun (`null`). */
   openScanner: (targetId: string | null) => void
   closeScanner: () => void
+  closeTour: () => void
   openHelp: () => void
   closeHelp: () => void
   /** Proses hasil scan QR, ketikan kode, atau deep link. */
@@ -64,6 +68,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   phase: 'intro',
   selectedId: null,
   scanner: null,
+  tourOpen: false,
   helpOpen: false,
   reveal: null,
   pendingReveal: null,
@@ -71,9 +76,9 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   start: () => {
     const pending = get().pendingReveal
-    // Yang datang dari QR langsung melihat kartunya; petunjuk bisa dibuka nanti dari tombol.
-    const showHelp = !pending && !readFlag(HELP_SEEN_KEY)
-    set({ phase: 'playing', reveal: pending, pendingReveal: null, helpOpen: showHelp })
+    // Yang datang dari QR langsung melihat kartunya; panduan bisa dibuka nanti dari tombol info.
+    const showTour = !pending && !readFlag(HELP_SEEN_KEY)
+    set({ phase: 'playing', reveal: pending, pendingReveal: null, tourOpen: showTour })
     return pending
   },
 
@@ -82,6 +87,11 @@ export const useGameStore = create<GameState>()((set, get) => ({
   openScanner: (targetId) => set({ scanner: { targetId } }),
 
   closeScanner: () => set({ scanner: null }),
+
+  closeTour: () => {
+    writeFlag(HELP_SEEN_KEY)
+    set({ tourOpen: false })
+  },
 
   openHelp: () => set({ helpOpen: true }),
 

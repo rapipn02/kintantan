@@ -1,6 +1,7 @@
+import { useGameStore } from '../../app/gameStore.ts'
 import { TOTAL_EXHIBITS } from '../exhibits/catalog.ts'
 import { useFoundCount } from '../discovery/discoveryStore.ts'
-import { HelpIcon, MapIcon, PawIcon, QrIcon } from '../../shared/ui/icons.tsx'
+import { InfoIcon, ScanQrIcon, ShrinkIcon } from '../../shared/ui/icons.tsx'
 
 interface Props {
   onScan: () => void
@@ -9,54 +10,59 @@ interface Props {
 }
 
 /**
- * Baris atas peta sesuai desain: progres koleksi, Scan Barcode, Petunjuk Penggunaan.
- * Sengaja di kiri karena sisi kanan dipakai panel info hewan; di layar sempit label diringkas.
+ * HUD sesuai desain: skor koleksi di kiri atas, tombol Scan QR, lihat seluruh peta, dan panduan
+ * di kanan atas. Saat panel info hewan terbuka, tombol kanan bergeser ke kiri panel.
+ * Atribut `data-tour` dipakai tur pengenalan untuk menyorot tiap elemen.
  */
 export function Hud({ onScan, onHelp, onOverview }: Props) {
   const found = useFoundCount()
+  const panelOpen = useGameStore((state) => state.selectedId !== null)
   return (
-    <div className="safe-pad pointer-events-none absolute top-0 left-0 z-10 flex items-center gap-2">
-      <div
-        className="pointer-events-auto flex items-center gap-2 rounded-full bg-white py-1.5 pr-4 pl-1.5 shadow-[0_3px_0_rgb(91_58_31/0.25)]"
-        aria-label={`${found} dari ${TOTAL_EXHIBITS} hewan ditemukan`}
-        data-testid="hud-progress"
-      >
-        <span className="grid size-8 place-items-center rounded-full bg-ember text-white">
-          <PawIcon className="size-5" />
-        </span>
-        <span className="text-lg leading-none font-bold">
-          {found}
-          <span className="text-bark/50">/{TOTAL_EXHIBITS}</span>
-        </span>
+    <>
+      <div className="safe-pad pointer-events-none absolute top-0 left-0 z-10">
+        <div
+          className="hud-chip pointer-events-auto"
+          aria-label={`${found} dari ${TOTAL_EXHIBITS} hewan ditemukan`}
+          data-testid="hud-progress"
+          data-tour="score"
+        >
+          {found}/{TOTAL_EXHIBITS}
+        </div>
       </div>
-      <button
-        type="button"
-        className="btn-primary pointer-events-auto min-h-11 px-4 text-base"
-        aria-label="Scan Barcode"
-        onClick={onScan}
+      <div
+        className={`safe-pad pointer-events-none absolute top-0 z-10 flex gap-2 transition-[right] duration-300 ${panelOpen ? 'right-[min(340px,42vw)]' : 'right-0'}`}
       >
-        <QrIcon className="size-5" />
-        <span>
-          Scan<span className="max-[760px]:hidden"> Barcode</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        className="btn-secondary pointer-events-auto px-3"
-        aria-label="Petunjuk Penggunaan"
-        onClick={onHelp}
-      >
-        <HelpIcon className="size-5" />
-        <span className="max-[760px]:hidden">Petunjuk</span>
-      </button>
-      <button
-        type="button"
-        className="icon-btn pointer-events-auto"
-        aria-label="Lihat seluruh peta"
-        onClick={onOverview}
-      >
-        <MapIcon className="size-6" />
-      </button>
-    </div>
+        <button
+          type="button"
+          className="hud-btn pointer-events-auto"
+          aria-label="Scan Barcode"
+          title="Scan QR kandang"
+          data-tour="scan"
+          onClick={onScan}
+        >
+          <ScanQrIcon />
+        </button>
+        <button
+          type="button"
+          className="hud-btn pointer-events-auto"
+          aria-label="Lihat seluruh peta"
+          title="Lihat seluruh peta"
+          data-tour="overview"
+          onClick={onOverview}
+        >
+          <ShrinkIcon />
+        </button>
+        <button
+          type="button"
+          className="hud-btn pointer-events-auto"
+          aria-label="Petunjuk Penggunaan"
+          title="Petunjuk Penggunaan"
+          data-tour="help"
+          onClick={onHelp}
+        >
+          <InfoIcon />
+        </button>
+      </div>
+    </>
   )
 }
