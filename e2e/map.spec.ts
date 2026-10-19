@@ -120,6 +120,12 @@ test('link QR (kamera bawaan / NFC) membuka kartu dan progres tersimpan', async 
   await expect(card.getByText('Helarctos malayanus').first()).toBeVisible()
   await expect(card.getByText('Asia Tenggara')).toBeVisible()
 
+  // Speaker memutar suara geraman beruang madu (±1,25 detik), lalu kembali diam.
+  const speaker = card.getByRole('button', { name: 'Putar suara Beruang Madu' })
+  await speaker.tap()
+  await expect(speaker).toHaveAttribute('aria-pressed', 'true')
+  await expect(speaker).toHaveAttribute('aria-pressed', 'false', { timeout: 5000 })
+
   const taxonomy = card.getByRole('complementary', { name: 'Taksonomi' })
   await expect(taxonomy).toBeHidden()
   await card.getByRole('button', { name: 'Taksonomi' }).tap()

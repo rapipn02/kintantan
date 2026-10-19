@@ -36,8 +36,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // App shell, peta, sprite & font di-precache supaya tetap jalan saat sinyal hilang.
-        globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2}'],
+        // App shell, peta, sprite, font & suara hewan di-precache supaya tetap jalan saat sinyal hilang.
+        globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2,mp3}'],
         // Pemindai wasm (~1 MB) hanya dibutuhkan browser tanpa BarcodeDetector bawaan (iOS),
         // jadi tidak di-precache untuk semua orang; di-cache saat pertama kali diambil.
         globIgnores: ['**/*.wasm'],

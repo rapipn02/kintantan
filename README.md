@@ -80,9 +80,11 @@ teman desainer meng-export:
    diberi area tekan transparan; letaknya (px gambar asli) ada di `IntroTour.tsx`,
    `ScannerModal.tsx`, dan `src/features/discovery/cardDesigns.ts`. Kartu hewan per spesies:
    `kartu-<id-spesies>.png` + `taksonomi-<id-spesies>.png`, lalu daftarkan di `cardDesigns.ts`.
-4. **Foto hewan untuk kartu** (opsional) → `assets-src/photos/<id-spesies>.jpg`, mis.
+4. **Suara hewan** (opsional) → `assets-src/suara/<id-spesies>.mp3`, dipakai apa adanya. Tombol
+   speaker di kartu memutarnya; tanpa file suara, tombol speaker membacakan isi kartu.
+5. **Foto hewan untuk kartu** (opsional) → `assets-src/photos/<id-spesies>.jpg`, mis.
    `beruang-madu.jpg`. Tanpa foto, kartu memotong gambar hewan dari peta.
-5. Jalankan `npm run assets`.
+6. Jalankan `npm run assets`.
 
 **Mode demo (sementara aktif):** kode apa pun yang discan atau diketik di scanner aplikasi membuka
 kartu hewan (hewan yang sedang dipilih, atau Beruang Madu dari tombol QR umum). Deep link

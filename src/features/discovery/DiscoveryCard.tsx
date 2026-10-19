@@ -3,6 +3,7 @@ import {
   type PointerEvent,
   type ReactNode,
   type SVGProps,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -11,6 +12,7 @@ import { type Reveal, useGameStore } from '../../app/gameStore.ts'
 import { AnimalPortrait } from '../exhibits/AnimalPortrait.tsx'
 import { getExhibit, getSpecies, getSpeciesInfo, TOTAL_EXHIBITS } from '../exhibits/catalog.ts'
 import { getPhoto } from '../exhibits/photos.ts'
+import { getSound } from '../exhibits/sounds.ts'
 import type { Exhibit, SpeciesInfo, Taxonomy } from '../exhibits/types.ts'
 import {
   ChevronsDownIcon,
@@ -81,7 +83,7 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
   const isNew = reveal.kind === 'new'
   const foundCount = useFoundCount()
   const [taxonomyOpen, setTaxonomyOpen] = useState(false)
-  const speech = useSpeech(speechText(species.name, info))
+  const speech = useCardSound(speechText(species.name, info), getSound(species.id))
   const closeRef = useRef<HTMLButtonElement>(null)
   const lastTap = useRef(0)
 
@@ -116,9 +118,11 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // overflow-clip (bukan hidden): latar tidak ikut tergulir saat tombol di kartu difokus, jadi
+  // "tempat kosong" untuk ketuk dua kali tidak tertutup kartu yang bergeser.
   return (
     <div
-      className="safe-pad absolute inset-0 z-40 flex animate-fade-in items-center justify-center gap-3 overflow-hidden bg-bark/55"
+      className="safe-pad absolute inset-0 z-40 flex animate-fade-in items-center justify-center gap-3 overflow-clip bg-bark/55"
       onPointerUp={handleBackdropTap}
       role="dialog"
       aria-modal="true"
@@ -162,7 +166,7 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
                   <button
                     type="button"
                     className="animal-speaker w-[clamp(42px,5vw,56px)] shrink-0"
-                    aria-label={`Dengarkan info ${species.name}`}
+                    aria-label={`${speech.label} ${species.name}`}
                     aria-pressed={speech.speaking}
                     onClick={speech.toggle}
                   >
@@ -257,7 +261,7 @@ interface DesignCardViewProps {
   info: SpeciesInfo | undefined
   taxonomyOpen: boolean
   onToggleTaxonomy: () => void
-  speech: ReturnType<typeof useSpeech>
+  speech: ReturnType<typeof useCardSound>
 }
 
 /**
@@ -301,7 +305,7 @@ function DesignCardView({
               type="button"
               className="design-hotspot rounded-[22%]"
               style={boxStyle(design.speaker, design.card)}
-              aria-label={`Dengarkan info ${name}`}
+              aria-label={`${speech.label} ${name}`}
               aria-pressed={speech.speaking}
               onClick={speech.toggle}
             />
@@ -425,33 +429,47 @@ function speechText(name: string, info: SpeciesInfo | undefined): string {
   ].join(' ')
 }
 
-/** Bacakan isi kartu dengan suara bahasa Indonesia bawaan perangkat (bila tersedia). */
-function useSpeech(text: string) {
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
+/**
+ * Tombol speaker kartu: putar suara asli hewan bila ada (`assets-src/suara/`), kalau tidak
+ * bacakan isi kartu dengan suara bahasa Indonesia bawaan perangkat. Ketuk lagi untuk berhenti.
+ */
+function useCardSound(text: string, soundUrl: string | undefined) {
+  const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
+  const supported = Boolean(soundUrl) || canSpeak
   const [speaking, setSpeaking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  useEffect(
-    () => () => {
-      if (supported) window.speechSynthesis.cancel()
-    },
-    [supported],
-  )
+  const stop = useCallback(() => {
+    audioRef.current?.pause()
+    if (audioRef.current) audioRef.current.currentTime = 0
+    if (canSpeak) window.speechSynthesis.cancel()
+    setSpeaking(false)
+  }, [canSpeak])
+
+  // Hentikan suara saat kartu ditutup.
+  useEffect(() => stop, [stop])
 
   const toggle = () => {
-    if (!supported) return
-    window.speechSynthesis.cancel()
     if (speaking) {
-      setSpeaking(false)
+      stop()
       return
     }
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'id-ID'
-    utterance.rate = 0.95
-    utterance.onend = () => setSpeaking(false)
-    utterance.onerror = () => setSpeaking(false)
-    window.speechSynthesis.speak(utterance)
+    if (soundUrl) {
+      const audio = (audioRef.current ??= new Audio(soundUrl))
+      audio.onended = () => setSpeaking(false)
+      audio.currentTime = 0
+      void audio.play().catch(() => setSpeaking(false))
+    } else if (canSpeak) {
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'id-ID'
+      utterance.rate = 0.95
+      utterance.onend = () => setSpeaking(false)
+      utterance.onerror = () => setSpeaking(false)
+      window.speechSynthesis.speak(utterance)
+    } else return
     setSpeaking(true)
   }
 
-  return { supported, speaking, toggle }
+  return { supported, speaking, toggle, label: soundUrl ? 'Putar suara' : 'Dengarkan info' }
 }

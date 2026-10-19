@@ -6,6 +6,7 @@
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
  *   assets-src/desain/*.png              -> src/assets/desain/*.png (disalin apa adanya: tur, scanner,
  *                                           popup berhasil, kartu hewan)
+ *   assets-src/suara/<species-id>.mp3    -> src/assets/suara/<species-id>.mp3 (suara hewan, apa adanya)
  *   assets-src/photos/<species-id>.jpg   -> src/assets/photos/<species-id>.webp (foto di kartu hewan)
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
  *
@@ -105,16 +106,19 @@ async function buildFolder(name: string, maxSize: { width?: number; height?: num
   console.log(`${name}: ${files.length}`)
 }
 
-/** Gambar desain (tur, scanner, kartu) dipakai PERSIS seperti dari desainer: disalin, tidak diubah. */
-async function copyDesigns() {
-  const dir = path.join(SRC, 'desain')
+/**
+ * Salin satu folder apa adanya (tanpa diubah sedikit pun), mis. gambar desain dan suara hewan.
+ * Folder output dibersihkan dulu supaya file yang dihapus tidak tertinggal.
+ */
+async function copyAsIs(name: string, ext: RegExp) {
+  const dir = path.join(SRC, name)
   if (!existsSync(dir)) return
-  const out = path.join(ROOT, 'src/assets/desain')
+  const out = path.join(ROOT, 'src/assets', name)
   await rm(out, { recursive: true, force: true })
   await mkdir(out, { recursive: true })
-  const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
+  const files = (await readdir(dir)).filter((f) => ext.test(f))
   for (const file of files) await copyFile(path.join(dir, file), path.join(out, file))
-  console.log(`desain: ${files.length} (apa adanya)`)
+  console.log(`${name}: ${files.length} (apa adanya)`)
 }
 
 async function buildIcons() {
@@ -143,6 +147,7 @@ async function buildIcons() {
 
 await buildMap()
 await buildSprites()
-await copyDesigns()
+await copyAsIs('desain', IMAGE_EXT)
+await copyAsIs('suara', /\.(mp3|m4a|ogg|wav)$/i)
 await buildFolder('photos', { width: MAX_PHOTO_SIZE, height: MAX_PHOTO_SIZE })
 await buildIcons()
