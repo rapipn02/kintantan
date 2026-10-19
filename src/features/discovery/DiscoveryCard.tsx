@@ -29,7 +29,7 @@ import {
   SpeakerIcon,
   SpeciesIcon,
 } from '../../shared/ui/icons.tsx'
-import { boxStyle } from '../../shared/ui/designImage.ts'
+import { boxStyle, containWidth } from '../../shared/ui/designImage.ts'
 import { type CardDesign, CARD_DESIGNS } from './cardDesigns.ts'
 import { useFoundCount } from './discoveryStore.ts'
 
@@ -41,8 +41,14 @@ const PHOTO_ASPECT = 245 / 231
 /** Jarak maksimum antar ketukan agar dihitung ketuk dua kali. */
 const DOUBLE_TAP_MS = 400
 
-/** Lebar tampil kartu desain: tidak melebihi ukuran asli supaya tetap tajam. */
-const DESIGN_CARD_WIDTH = 'min(582px, 52vw)'
+/**
+ * Lebar tampil kartu desain: utuh di layar tanpa scroll (dibatasi tinggi layar dikurangi
+ * jarak tepi), tidak melebihi ukuran asli supaya tetap tajam, dan menyisakan tempat untuk panel
+ * taksonomi di sampingnya.
+ */
+function designCardWidth(design: CardDesign) {
+  return containWidth(design.card, `min(${design.card.width}px, 52vw)`, 'calc(100dvh - 20px)')
+}
 
 const TAXONOMY_ROWS: { key: keyof Omit<Taxonomy, 'kingdom'>; label: string; icon: Icon }[] = [
   { key: 'phylum', label: 'Filum', icon: PhylumIcon },
@@ -283,7 +289,7 @@ function DesignCardView({
     <>
       <article
         className="relative max-h-full animate-pop-in no-scrollbar overflow-y-auto"
-        style={{ width: DESIGN_CARD_WIDTH }}
+        style={{ width: designCardWidth(design) }}
       >
         <div
           className="relative"
@@ -331,7 +337,7 @@ function DesignCardView({
           aria-label="Taksonomi"
           className="relative max-h-full animate-slide-in-right no-scrollbar overflow-y-auto"
           style={{
-            width: `calc(${DESIGN_CARD_WIDTH} * ${design.taxonomy.width / design.card.width})`,
+            width: `calc(${designCardWidth(design)} * ${design.taxonomy.width / design.card.width})`,
           }}
         >
           <img src={design.taxonomy.src} alt="" className="w-full select-none" draggable={false} />
