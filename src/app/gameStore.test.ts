@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { EXHIBITS } from '../features/exhibits/catalog.ts'
 import { countFound, useDiscoveryStore } from '../features/discovery/discoveryStore.ts'
-import { HELP_SEEN_KEY, useGameStore } from './gameStore.ts'
+import { TOUR_SEEN_KEY, useGameStore } from './gameStore.ts'
 
 const [lion, bear] = [
   EXHIBITS.find((e) => e.id === 'singa')!,
@@ -93,11 +93,23 @@ describe('tur pengenalan', () => {
     // Petunjuk lengkap tidak ikut terbuka; hanya lewat tombol info.
     expect(useGameStore.getState().helpOpen).toBe(false)
     useGameStore.getState().closeTour()
-    expect(localStorage.getItem(HELP_SEEN_KEY)).toBe('1')
+    expect(localStorage.getItem(TOUR_SEEN_KEY)).toBe('1')
 
     useGameStore.setState(initial, true)
     startPlaying()
     expect(useGameStore.getState().tourOpen).toBe(false)
+  })
+
+  it('tetap tampil bagi yang sudah menutup petunjuk versi lama', () => {
+    localStorage.setItem('kintantan:help-seen', '1')
+    startPlaying()
+    expect(useGameStore.getState().tourOpen).toBe(true)
+  })
+
+  it('membuka petunjuk lengkap tidak menandai tur sudah dilihat', () => {
+    useGameStore.getState().openHelp()
+    useGameStore.getState().closeHelp()
+    expect(localStorage.getItem(TOUR_SEEN_KEY)).toBeNull()
   })
 
   it('tidak menutupi kartu bagi pengunjung yang datang dari link QR', () => {

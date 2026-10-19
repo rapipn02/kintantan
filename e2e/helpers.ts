@@ -10,7 +10,7 @@ export function tokenOf(exhibitId: string): string {
 
 /** Anggap petunjuk penggunaan sudah pernah dibaca (supaya tidak menutupi peta di tes lain). */
 export async function skipHelp(page: Page) {
-  await page.addInitScript(() => localStorage.setItem('kintantan:help-seen', '1'))
+  await page.addInitScript(() => localStorage.setItem('kintantan:tour-seen', '1'))
 }
 
 export async function startGame(page: Page) {

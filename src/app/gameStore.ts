@@ -5,8 +5,12 @@ import { extractToken } from '../features/scanner/parseScanResult.ts'
 import { vibrate } from '../shared/lib/haptics.ts'
 import { readFlag, writeFlag } from '../shared/lib/storage.ts'
 
-/** Tur pengenalan (macan pemandu) otomatis tampil sekali, saat pertama kali bermain. */
-export const HELP_SEEN_KEY = 'kintantan:help-seen'
+/**
+ * Tur pengenalan (macan pemandu) otomatis tampil sekali, saat pertama kali bermain.
+ * Sengaja berbeda dari flag lama `kintantan:help-seen`, supaya pengunjung yang sudah menutup
+ * petunjuk versi lama tetap melihat tur baru.
+ */
+export const TOUR_SEEN_KEY = 'kintantan:tour-seen'
 
 /** new = baru ditemukan, again = scan ulang kandang yang sama, view = buka kartu dari panel. */
 export type RevealKind = 'new' | 'again' | 'view'
@@ -77,7 +81,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   start: () => {
     const pending = get().pendingReveal
     // Yang datang dari QR langsung melihat kartunya; panduan bisa dibuka nanti dari tombol info.
-    const showTour = !pending && !readFlag(HELP_SEEN_KEY)
+    const showTour = !pending && !readFlag(TOUR_SEEN_KEY)
     set({ phase: 'playing', reveal: pending, pendingReveal: null, tourOpen: showTour })
     return pending
   },
@@ -89,16 +93,13 @@ export const useGameStore = create<GameState>()((set, get) => ({
   closeScanner: () => set({ scanner: null }),
 
   closeTour: () => {
-    writeFlag(HELP_SEEN_KEY)
+    writeFlag(TOUR_SEEN_KEY)
     set({ tourOpen: false })
   },
 
   openHelp: () => set({ helpOpen: true }),
 
-  closeHelp: () => {
-    writeFlag(HELP_SEEN_KEY)
-    set({ helpOpen: false })
-  },
+  closeHelp: () => set({ helpOpen: false }),
 
   claim: (raw) => {
     const token = extractToken(raw)
