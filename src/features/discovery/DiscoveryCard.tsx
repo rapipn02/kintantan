@@ -42,12 +42,21 @@ const PHOTO_ASPECT = 245 / 231
 const DOUBLE_TAP_MS = 400
 
 /**
- * Lebar tampil kartu desain: utuh di layar tanpa scroll (dibatasi tinggi layar dikurangi
- * jarak tepi), tidak melebihi ukuran asli supaya tetap tajam, dan menyisakan tempat untuk panel
- * taksonomi di sampingnya.
+ * Seberapa tinggi kartu dibanding layar. 1 = muat utuh (teks terlalu kecil di HP landscape);
+ * sedikit di atas 1 = kartu lebih besar dan cukup di-scroll sedikit.
+ */
+const CARD_HEIGHT_VS_SCREEN = 1.35
+
+/**
+ * Lebar tampil kartu desain: setinggi ±1,35× layar, tidak melebihi ukuran asli supaya tetap
+ * tajam, dan menyisakan tempat untuk panel taksonomi di sampingnya.
  */
 function designCardWidth(design: CardDesign) {
-  return containWidth(design.card, `min(${design.card.width}px, 52vw)`, 'calc(100dvh - 20px)')
+  return containWidth(
+    design.card,
+    `min(${design.card.width}px, 52vw)`,
+    `calc((100dvh - 20px) * ${CARD_HEIGHT_VS_SCREEN})`,
+  )
 }
 
 const TAXONOMY_ROWS: { key: keyof Omit<Taxonomy, 'kingdom'>; label: string; icon: Icon }[] = [
