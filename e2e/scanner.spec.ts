@@ -15,7 +15,6 @@ test.beforeEach(async ({ page }) => {
 
 test('scan QR di kandang membuka kartu hewan', async ({ page }) => {
   await tapExhibit(page, 'singa')
-  await page.getByRole('button', { name: 'Scan QR' }).tap()
 
   const card = page.getByRole('dialog', { name: 'Singa Afrika' })
   await expect(card).toBeVisible({ timeout: 20_000 })
@@ -29,7 +28,6 @@ test('scan QR di kandang membuka kartu hewan', async ({ page }) => {
 
 test('QR kandang lain tetap membuka hewan yang discan', async ({ page }) => {
   await tapExhibit(page, 'macan-tutul')
-  await page.getByRole('button', { name: 'Scan QR' }).tap()
 
   const card = page.getByRole('dialog', { name: 'Singa Afrika' })
   await expect(card).toBeVisible({ timeout: 20_000 })

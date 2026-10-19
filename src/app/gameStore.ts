@@ -65,6 +65,8 @@ interface GameState {
   /** Tutup layar pembuka; mengembalikan kartu yang tertunda (bila ada). */
   start: () => Reveal | null
   select: (exhibitId: string | null) => void
+  /** Ketuk hewan di peta: belum ditemukan → langsung kamera; sudah ditemukan → kartunya. */
+  openExhibit: (exhibitId: string) => void
   /** Buka kamera untuk hewan tertentu, atau untuk QR kandang mana pun (`null`). */
   openScanner: (targetId: string | null) => void
   closeScanner: () => void
@@ -104,9 +106,18 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   select: (exhibitId) => set({ selectedId: exhibitId }),
 
+  openExhibit: (exhibitId) => {
+    const found = useDiscoveryStore.getState().found[exhibitId] !== undefined
+    set(
+      found
+        ? { selectedId: exhibitId, reveal: { exhibitId, kind: 'view' } }
+        : { selectedId: exhibitId, scanner: { targetId: exhibitId } },
+    )
+  },
+
   openScanner: (targetId) => set({ scanner: { targetId } }),
 
-  closeScanner: () => set({ scanner: null }),
+  closeScanner: () => set({ scanner: null, selectedId: null }),
 
   closeTour: () => {
     writeFlag(TOUR_SEEN_KEY)
@@ -150,7 +161,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   },
 
   // Toast status kartu ikut ditutup supaya tidak menutupi layar berikutnya.
-  closeReveal: () => set({ reveal: null, toast: null }),
+  closeReveal: () => set({ reveal: null, toast: null, selectedId: null }),
 
   showToast: (message) => set({ toast: { id: ++toastId, message } }),
 

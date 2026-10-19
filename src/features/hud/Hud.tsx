@@ -1,4 +1,3 @@
-import { useGameStore } from '../../app/gameStore.ts'
 import { TOTAL_EXHIBITS } from '../exhibits/catalog.ts'
 import { useFoundCount } from '../discovery/discoveryStore.ts'
 import { InfoIcon, ScanQrIcon, ShrinkIcon } from '../../shared/ui/icons.tsx'
@@ -11,12 +10,11 @@ interface Props {
 
 /**
  * HUD sesuai desain: skor koleksi di kiri atas, tombol Scan QR, lihat seluruh peta, dan panduan
- * di kanan atas. Saat panel info hewan terbuka, tombol kanan bergeser ke kiri panel.
+ * di kanan atas.
  * Atribut `data-tour` dipakai tur pengenalan untuk menyorot tiap elemen.
  */
 export function Hud({ onScan, onHelp, onOverview }: Props) {
   const found = useFoundCount()
-  const panelOpen = useGameStore((state) => state.selectedId !== null)
   return (
     <>
       <div className="safe-pad pointer-events-none absolute top-0 left-0 z-10">
@@ -29,9 +27,7 @@ export function Hud({ onScan, onHelp, onOverview }: Props) {
           {found}/{TOTAL_EXHIBITS}
         </div>
       </div>
-      <div
-        className={`safe-pad pointer-events-none absolute top-0 z-10 flex gap-2 transition-[right] duration-300 ${panelOpen ? 'right-[min(340px,42vw)]' : 'right-0'}`}
-      >
+      <div className="safe-pad pointer-events-none absolute top-0 right-0 z-10 flex gap-2">
         <button
           type="button"
           className="hud-btn pointer-events-auto"

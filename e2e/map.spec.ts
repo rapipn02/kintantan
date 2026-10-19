@@ -74,26 +74,24 @@ test('pinch zoom dibatasi antara seluruh peta dan zoom maksimum', async ({ page 
   expect((await worldRect(page)).width).toBeCloseTo(VIEWPORT.width, 0)
 })
 
-test('tap hewan membuka panel, tap area kosong menutupnya', async ({ page }) => {
+test('tap hewan yang belum ditemukan langsung membuka kamera kandangnya', async ({ page }) => {
   await startGame(page)
   await tapExhibit(page, 'gajah')
-  const panel = page.getByRole('complementary', { name: 'Gajah Sumatera' })
-  await expect(panel).toBeVisible()
-  await expect(panel.getByRole('button', { name: 'Scan QR' })).toBeVisible()
-  await expect(page.locator('[data-exhibit="gajah"]')).toHaveAttribute('aria-pressed', 'true')
+  const scanner = page.getByRole('dialog', { name: 'Scan QR kandang Gajah Sumatera' })
+  await expect(scanner).toBeVisible()
+  await expect(page.getByRole('complementary')).toHaveCount(0)
 
-  // Jalan setapak kosong di antara burung dan rusa.
-  const empty = await screenPoint(page, { x: 0.28, y: 0.615 })
-  await page.touchscreen.tap(empty.x, empty.y)
-  await expect(panel).toBeHidden()
+  await scanner.getByRole('button', { name: 'Tutup kamera' }).tap()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('[data-exhibit="gajah"]')).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('menggeser peta yang dimulai di atas hewan tidak membuka panel', async ({ page }) => {
+test('menggeser peta yang dimulai di atas hewan tidak membuka kamera', async ({ page }) => {
   await startGame(page)
   const box = (await page.locator('[data-exhibit="zebra"]').boundingBox())!
   await swipe(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, { x: -150, y: 0 })
   await waitForCameraToSettle(page)
-  await expect(page.getByRole('complementary', { name: 'Zebra' })).toHaveCount(0)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
 test('double-tap memperbesar peta', async ({ page }) => {
@@ -138,6 +136,12 @@ test('link QR (kamera bawaan / NFC) membuka kartu dan progres tersimpan', async 
     'Beruang Madu, sudah ditemukan',
   )
 
+  // Hewan yang sudah ditemukan: ketuk langsung membuka kartunya (tanpa kamera).
+  await tapExhibit(page, 'beruang-madu')
+  await expect(page.getByRole('dialog', { name: 'Beruang Madu' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: /Scan/ })).toHaveCount(0)
+  await closeCard(page)
+
   await page.reload()
   await expect(page.getByText('Koleksimu: 1/57 hewan')).toBeVisible()
   await startGame(page)
@@ -152,7 +156,6 @@ test('link QR yang tidak dikenal menampilkan pesan', async ({ page }) => {
 test('kode bisa diketik manual bila kamera tidak tersedia', async ({ page }) => {
   await startGame(page)
   await tapExhibit(page, 'gajah')
-  await page.getByRole('button', { name: 'Scan QR' }).tap()
 
   const scanner = page.getByRole('dialog', { name: 'Scan QR kandang Gajah Sumatera' })
   await expect(scanner).toBeVisible()

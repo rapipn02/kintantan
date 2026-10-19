@@ -26,8 +26,3 @@ export const CAMERA = {
   /** Titik Awal (pintu masuk) dalam koordinat ternormalisasi peta. */
   startPoint: { x: 0.06, y: 0.93 },
 } as const
-
-/** Lebar panel info hewan di sisi kanan (harus sama dengan CSS `--panel-width`). */
-export function panelWidth(viewportWidth: number): number {
-  return Math.min(340, Math.round(viewportWidth * 0.42))
-}

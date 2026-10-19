@@ -32,8 +32,7 @@ test('setelah dibuka sekali, web tetap jalan tanpa sinyal', async ({ page, conte
   await startGame(page)
   await expect(page.getByRole('dialog', { name: 'Zebra' })).toBeVisible()
   await closeCard(page)
+  // Zebra sudah ditemukan: ketuk langsung membuka kartunya, juga saat offline.
   await tapExhibit(page, 'zebra')
-  await expect(
-    page.getByRole('complementary', { name: 'Zebra' }).getByText('Sudah masuk koleksimu!'),
-  ).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Zebra' })).toBeVisible()
 })

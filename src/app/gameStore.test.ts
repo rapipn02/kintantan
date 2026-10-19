@@ -120,6 +120,23 @@ describe('claim', () => {
   })
 })
 
+describe('ketuk hewan di peta', () => {
+  it('belum ditemukan: langsung membuka kamera untuk kandang itu', () => {
+    startPlaying()
+    useGameStore.getState().openExhibit(lion.id)
+    expect(useGameStore.getState().scanner).toEqual({ targetId: lion.id })
+    expect(useGameStore.getState().reveal).toBeNull()
+  })
+
+  it('sudah ditemukan: langsung membuka kartunya', () => {
+    startPlaying()
+    useDiscoveryStore.getState().discover(lion.id)
+    useGameStore.getState().openExhibit(lion.id)
+    expect(useGameStore.getState().reveal).toEqual({ exhibitId: lion.id, kind: 'view' })
+    expect(useGameStore.getState().scanner).toBeNull()
+  })
+})
+
 describe('discovery store', () => {
   it('menyimpan progres ke localStorage', () => {
     useDiscoveryStore.getState().discover(lion.id)

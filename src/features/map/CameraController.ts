@@ -16,7 +16,6 @@ import {
   screenToWorld,
   settleCamera,
   translateRange,
-  worldToScreen,
   zoomAt,
 } from './camera.ts'
 
@@ -178,26 +177,6 @@ export class CameraController {
     if (!limits) return
     const scale = clamp(limits.minScale * zoom, limits.minScale, limits.maxScale)
     this.flyTo(centerOn(point, scale, limits), duration)
-  }
-
-  /**
-   * Geser seperlunya agar titik dunia terlihat di area layar yang tidak tertutup panel.
-   * `insets` = bagian layar yang tertutup UI (px).
-   */
-  revealPoint(point: Point, insets: { right: number }) {
-    const limits = this.limits
-    if (!limits) return
-    const margin = 32
-    const visibleRight = limits.viewport.width - insets.right
-    const screen = worldToScreen(point, this.camera)
-    const hidden =
-      screen.x < margin ||
-      screen.x > visibleRight - margin ||
-      screen.y < margin ||
-      screen.y > limits.viewport.height - margin
-    if (!hidden) return
-    const anchor = { x: visibleRight / 2, y: limits.viewport.height / 2 }
-    this.flyTo(centerOn(point, this.camera.scale, limits, anchor), 450)
   }
 
   private flyTo(target: Camera, duration: number) {

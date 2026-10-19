@@ -1,8 +1,8 @@
-import { type Ref, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
+import { type Ref, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { getExhibit } from '../exhibits/catalog.ts'
 import { CameraController } from './CameraController.ts'
 import { ExhibitLayer } from './ExhibitLayer.tsx'
-import { CAMERA, MAP, panelWidth } from './mapConfig.ts'
+import { CAMERA, MAP } from './mapConfig.ts'
 import { useMapGestures } from './useMapGestures.ts'
 
 export interface MapViewportHandle {
@@ -68,14 +68,6 @@ export function MapViewport({ ref, selectedId, onSelect, onBackgroundTap }: Prop
       controller.detach()
     }
   }, [controller])
-
-  // Hewan yang dipilih jangan sampai tertutup panel info di kanan.
-  useEffect(() => {
-    if (!selectedId) return
-    const center = exhibitCenter(selectedId)
-    const viewport = controller.bounds?.viewport
-    if (center && viewport) controller.revealPoint(center, { right: panelWidth(viewport.width) })
-  }, [controller, selectedId])
 
   useImperativeHandle(
     ref,

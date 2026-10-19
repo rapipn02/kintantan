@@ -17,11 +17,11 @@ const STEPS: Step[] = [
   },
   {
     icon: <HandIcon className="size-7" />,
-    title: 'Pilih hewan',
+    title: 'Pencet hewan',
     text: (
       <>
-        Pencet hewan untuk melihat namanya. <b className="text-[#e5392f]">✗</b> belum ditemukan,{' '}
-        <b className="text-[#3c9a2e]">✓</b> sudah.
+        Pencet hewan untuk langsung membuka kamera kandangnya. <b className="text-[#e5392f]">✗</b>{' '}
+        belum ditemukan, <b className="text-[#3c9a2e]">✓</b> sudah (pencet untuk lihat kartunya).
       </>
     ),
   },

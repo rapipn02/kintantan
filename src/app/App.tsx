@@ -1,6 +1,5 @@
 import { lazy, Suspense, useCallback, useRef } from 'react'
 import { getExhibit, getSpecies } from '../features/exhibits/catalog.ts'
-import { ExhibitPanel } from '../features/exhibits/ExhibitPanel.tsx'
 import { DiscoveryCard } from '../features/discovery/DiscoveryCard.tsx'
 import { ScanSuccess } from '../features/discovery/ScanSuccess.tsx'
 import { HelpDialog } from '../features/help/HelpDialog.tsx'
@@ -23,6 +22,7 @@ export function App() {
   const scanner = useGameStore((state) => state.scanner)
   const start = useGameStore((state) => state.start)
   const select = useGameStore((state) => state.select)
+  const openExhibit = useGameStore((state) => state.openExhibit)
   const claim = useGameStore((state) => state.claim)
   const openScanner = useGameStore((state) => state.openScanner)
   const closeScanner = useGameStore((state) => state.closeScanner)
@@ -48,7 +48,7 @@ export function App() {
       <MapViewport
         ref={mapRef}
         selectedId={selectedId}
-        onSelect={select}
+        onSelect={openExhibit}
         onBackgroundTap={handleBackgroundTap}
       />
 
@@ -62,7 +62,6 @@ export function App() {
               onOverview={() => mapRef.current?.showOverview()}
             />
           )}
-          <ExhibitPanel />
         </>
       )}
 
