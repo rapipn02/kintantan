@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { findExhibitByToken } from '../features/exhibits/catalog.ts'
+import { findExhibitByToken, getExhibit } from '../features/exhibits/catalog.ts'
 import { useDiscoveryStore } from '../features/discovery/discoveryStore.ts'
 import { extractToken } from '../features/scanner/parseScanResult.ts'
 import { vibrate } from '../shared/lib/haptics.ts'
@@ -11,6 +11,18 @@ import { readFlag, writeFlag } from '../shared/lib/storage.ts'
  * petunjuk versi lama tetap melihat tur baru.
  */
 export const TOUR_SEEN_KEY = 'kintantan:tour-seen'
+
+/**
+ * MODE DEMO (sementara): kode apa pun yang discan/diketik di scanner aplikasi membuka kartu hewan.
+ * Kode yang tidak dikenal membuka hewan yang sedang dipilih, atau `fallbackExhibitId` bila scanner
+ * dibuka dari tombol QR umum. Deep link `/s/<token>` tetap ketat. Set `acceptAnyCode: false` untuk
+ * kembali ke perilaku normal.
+ */
+export const DEMO = {
+  acceptAnyCode: true,
+  /** Satu-satunya hewan yang sudah punya desain kartu. */
+  fallbackExhibitId: 'beruang-madu',
+}
 
 /** new = baru ditemukan, again = scan ulang kandang yang sama, view = buka kartu dari panel. */
 export type RevealKind = 'new' | 'again' | 'view'
@@ -107,12 +119,16 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   claim: (raw) => {
     const token = extractToken(raw)
-    const exhibit = token ? findExhibitByToken(token) : undefined
+    const { scanner, phase } = get()
+    const targetId = scanner?.targetId
+    let exhibit = token ? findExhibitByToken(token) : undefined
+    // Mode demo hanya untuk scanner di dalam aplikasi (fase bermain), bukan deep link.
+    if (!exhibit && DEMO.acceptAnyCode && phase === 'playing' && raw.trim()) {
+      exhibit = getExhibit(targetId ?? DEMO.fallbackExhibitId)
+    }
     if (!exhibit) return { ok: false }
 
     const isNew = useDiscoveryStore.getState().discover(exhibit.id)
-    const { scanner, phase } = get()
-    const targetId = scanner?.targetId
     const reveal: Reveal = {
       exhibitId: exhibit.id,
       kind: isNew ? 'new' : 'again',
@@ -133,7 +149,8 @@ export const useGameStore = create<GameState>()((set, get) => ({
     if (reveal?.celebrate) set({ reveal: { ...reveal, celebrate: false } })
   },
 
-  closeReveal: () => set({ reveal: null }),
+  // Toast status kartu ikut ditutup supaya tidak menutupi layar berikutnya.
+  closeReveal: () => set({ reveal: null, toast: null }),
 
   showToast: (message) => set({ toast: { id: ++toastId, message } }),
 

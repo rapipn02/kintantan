@@ -27,6 +27,7 @@ export function App() {
   const openScanner = useGameStore((state) => state.openScanner)
   const closeScanner = useGameStore((state) => state.closeScanner)
   const openHelp = useGameStore((state) => state.openHelp)
+  const tourOpen = useGameStore((state) => state.tourOpen)
 
   const handleStart = () => {
     const pending = start()
@@ -53,11 +54,14 @@ export function App() {
 
       {phase === 'playing' && (
         <>
-          <Hud
-            onScan={() => openScanner(null)}
-            onHelp={openHelp}
-            onOverview={() => mapRef.current?.showOverview()}
-          />
+          {/* Gambar tur sudah memuat HUD tergambar; HUD asli disembunyikan agar tidak dobel. */}
+          {!tourOpen && (
+            <Hud
+              onScan={() => openScanner(null)}
+              onHelp={openHelp}
+              onOverview={() => mapRef.current?.showOverview()}
+            />
+          )}
           <ExhibitPanel />
         </>
       )}

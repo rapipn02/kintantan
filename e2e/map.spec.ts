@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import {
+  closeCard,
   expectMapCoversViewport,
   pinch,
   screenPoint,
@@ -112,11 +113,12 @@ test('link QR (kamera bawaan / NFC) membuka kartu dan progres tersimpan', async 
   await page.getByRole('button', { name: /Petualangan/ }).tap()
 
   // Popup "Pindai berhasil" dulu (±1,6 detik), lalu kartu hewan.
-  await expect(page.getByRole('status').getByText('Pindai berhasil')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Pindai berhasil' })).toBeVisible()
   const card = page.getByRole('dialog', { name: 'Beruang Madu' })
   await expect(card).toBeVisible()
-  await expect(page.getByText('Pindai berhasil')).toBeHidden()
-  await expect(card.getByText('Hewan Baru Ditemukan!')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Pindai berhasil' })).toBeHidden()
+  // Status tampil sebagai toast supaya tidak menutupi gambar kartu.
+  await expect(page.getByText('Hewan Baru Ditemukan! (1/57)')).toBeVisible()
   await expect(card.getByText('Helarctos malayanus').first()).toBeVisible()
   await expect(card.getByText('Asia Tenggara')).toBeVisible()
 
@@ -125,7 +127,11 @@ test('link QR (kamera bawaan / NFC) membuka kartu dan progres tersimpan', async 
   await card.getByRole('button', { name: 'Taksonomi' }).tap()
   await expect(taxonomy.getByText('Ursidae')).toBeVisible()
 
-  await card.getByRole('button', { name: 'Tutup kartu' }).tap()
+  // Sekali ketuk di tempat kosong tidak menutup kartu; ketuk dua kali baru menutup.
+  await page.touchscreen.tap(6, 195)
+  await page.waitForTimeout(500)
+  await expect(card).toBeVisible()
+  await closeCard(page)
 
   await expect(page.getByTestId('hud-progress')).toHaveAccessibleName('1 dari 57 hewan ditemukan')
   await expect(page.locator('[data-exhibit="beruang-madu"]')).toHaveAccessibleName(
@@ -151,16 +157,20 @@ test('kode bisa diketik manual bila kamera tidak tersedia', async ({ page }) => 
   const scanner = page.getByRole('dialog', { name: 'Scan QR kandang Gajah Sumatera' })
   await expect(scanner).toBeVisible()
   await scanner.getByRole('button', { name: 'Ketik kode' }).tap()
-  await scanner.getByRole('textbox', { name: 'Kode kandang' }).fill('salahkod')
-  await scanner.getByRole('button', { name: 'Buka' }).tap()
-  await expect(scanner.getByText('Kode tidak dikenal')).toBeVisible()
-
   await scanner.getByRole('textbox', { name: 'Kode kandang' }).fill(tokenOf('gajah').toUpperCase())
   await scanner.getByRole('button', { name: 'Buka' }).tap()
   await expect(scanner).toBeHidden()
-  await expect(
-    page.getByRole('dialog', { name: 'Gajah Sumatera' }).getByText('Hewan Baru Ditemukan!'),
-  ).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Gajah Sumatera' })).toBeVisible()
+})
+
+test('mode demo: kode sembarang di scanner tetap membuka kartu hewan', async ({ page }) => {
+  await startGame(page)
+  await page.getByRole('button', { name: 'Scan Barcode' }).tap()
+  const scanner = page.getByRole('dialog', { name: 'Scan Barcode' })
+  await scanner.getByRole('button', { name: 'Ketik kode' }).tap()
+  await scanner.getByRole('textbox', { name: 'Kode kandang' }).fill('asal1234')
+  await scanner.getByRole('button', { name: 'Buka' }).tap()
+  await expect(page.getByRole('dialog', { name: 'Beruang Madu' })).toBeVisible()
 })
 
 test('HP tegak menampilkan ajakan memiringkan HP', async ({ page }) => {

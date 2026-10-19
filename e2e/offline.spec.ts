@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { skipHelp, startGame, tapExhibit, tokenOf } from './helpers.ts'
+import { closeCard, skipHelp, startGame, tapExhibit, tokenOf } from './helpers.ts'
 
 test.use({ serviceWorkers: 'allow' })
 
@@ -30,10 +30,8 @@ test('setelah dibuka sekali, web tetap jalan tanpa sinyal', async ({ page, conte
   // Deep link dari QR juga terbuka offline, dan kode bisa diketik manual.
   await page.goto(`/s/${tokenOf('zebra')}`)
   await startGame(page)
-  await expect(
-    page.getByRole('dialog', { name: 'Zebra' }).getByText('Hewan Baru Ditemukan!'),
-  ).toBeVisible()
-  await page.getByRole('button', { name: 'Tutup kartu' }).tap()
+  await expect(page.getByRole('dialog', { name: 'Zebra' })).toBeVisible()
+  await closeCard(page)
   await tapExhibit(page, 'zebra')
   await expect(
     page.getByRole('complementary', { name: 'Zebra' }).getByText('Sudah masuk koleksimu!'),

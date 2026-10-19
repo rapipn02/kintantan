@@ -1,5 +1,6 @@
 import {
   type ComponentType,
+  type PointerEvent,
   type ReactNode,
   type SVGProps,
   useEffect,
@@ -26,12 +27,20 @@ import {
   SpeakerIcon,
   SpeciesIcon,
 } from '../../shared/ui/icons.tsx'
+import { boxStyle } from '../../shared/ui/designImage.ts'
+import { type CardDesign, CARD_DESIGNS } from './cardDesigns.ts'
 import { useFoundCount } from './discoveryStore.ts'
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>
 
 /** Rasio foto di desain kartu (245×231). */
 const PHOTO_ASPECT = 245 / 231
+
+/** Jarak maksimum antar ketukan agar dihitung ketuk dua kali. */
+const DOUBLE_TAP_MS = 400
+
+/** Lebar tampil kartu desain: tidak melebihi ukuran asli supaya tetap tajam. */
+const DESIGN_CARD_WIDTH = 'min(582px, 52vw)'
 
 const TAXONOMY_ROWS: { key: keyof Omit<Taxonomy, 'kingdom'>; label: string; icon: Icon }[] = [
   { key: 'phylum', label: 'Filum', icon: PhylumIcon },
@@ -74,6 +83,29 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
   const [taxonomyOpen, setTaxonomyOpen] = useState(false)
   const speech = useSpeech(speechText(species.name, info))
   const closeRef = useRef<HTMLButtonElement>(null)
+  const lastTap = useRef(0)
+
+  /** Sesuai petunjuk di desain kartu: "Klik dua kali tempat kosong untuk menutup". */
+  const handleBackdropTap = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return
+    const now = event.timeStamp
+    if (now - lastTap.current < DOUBLE_TAP_MS) onClose()
+    lastTap.current = now
+  }
+  const design = CARD_DESIGNS[species.id]
+  const showToast = useGameStore((state) => state.showToast)
+
+  // Status ditampilkan sebagai toast supaya tidak menutupi gambar kartu.
+  const status = expected
+    ? `Ini QR kandang ${species.name}, bukan ${getSpecies(expected).name}.${isNew ? ' Tetap masuk koleksimu!' : ''}`
+    : reveal.kind === 'new'
+      ? `Hewan Baru Ditemukan! (${foundCount}/${TOTAL_EXHIBITS})`
+      : reveal.kind === 'again'
+        ? `Sudah ada di koleksimu (${foundCount}/${TOTAL_EXHIBITS})`
+        : null
+  useEffect(() => {
+    if (status) showToast(status)
+  }, [status, showToast])
 
   useEffect(() => {
     closeRef.current?.focus({ focusVisible: false })
@@ -87,9 +119,10 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
   return (
     <div
       className="safe-pad absolute inset-0 z-40 flex animate-fade-in items-center justify-center gap-3 overflow-hidden bg-bark/55"
+      onPointerUp={handleBackdropTap}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="discovery-title"
+      aria-label={species.name}
     >
       {isNew && (
         <div
@@ -98,131 +131,216 @@ function AnimalCard({ reveal, exhibit, onClose }: CardProps) {
         />
       )}
 
-      <article className="animal-frame relative flex h-full max-h-[880px] w-[min(430px,54vw)] animate-pop-in flex-col">
-        <div className="paw-green flex min-h-0 flex-1 flex-col overflow-hidden rounded-[clamp(14px,2vw,22px)]">
-          <header className="flex shrink-0 items-stretch gap-2 p-[clamp(6px,1vw,10px)] pb-1">
-            <div className="animal-title flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 px-3 py-1">
-              <h2
-                id="discovery-title"
-                className="text-[clamp(20px,2.6vw,34px)] leading-tight font-bold"
-              >
-                {species.name}
-              </h2>
-              {info && (
-                <span className="text-[clamp(10px,1.1vw,13px)] text-bark">
-                  {info.scientificName}
-                </span>
-              )}
-            </div>
-            {speech.supported && (
-              <button
-                type="button"
-                className="animal-speaker w-[clamp(42px,5vw,56px)] shrink-0"
-                aria-label={`Dengarkan info ${species.name}`}
-                aria-pressed={speech.speaking}
-                onClick={speech.toggle}
-              >
-                <SpeakerIcon className="size-[55%]" />
-              </button>
-            )}
-          </header>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-[clamp(8px,1.4vw,16px)] pb-3">
-            {(reveal.kind !== 'view' || expected) && (
-              <div className="mt-1 flex flex-col items-center gap-1.5 text-center">
-                {reveal.kind !== 'view' && (
-                  <p
-                    className={`rounded-full px-3 py-0.5 text-xs font-bold tracking-wide uppercase shadow-sm ${isNew ? 'bg-sun text-bark' : 'bg-cream text-bark'}`}
+      {design ? (
+        <DesignCardView
+          design={design}
+          name={species.name}
+          info={info}
+          taxonomyOpen={taxonomyOpen}
+          onToggleTaxonomy={() => setTaxonomyOpen((open) => !open)}
+          speech={speech}
+        />
+      ) : (
+        <>
+          <article className="animal-frame relative flex h-full max-h-[880px] w-[min(430px,54vw)] animate-pop-in flex-col">
+            <div className="paw-green flex min-h-0 flex-1 flex-col overflow-hidden rounded-[clamp(14px,2vw,22px)]">
+              <header className="flex shrink-0 items-stretch gap-2 p-[clamp(6px,1vw,10px)] pb-1">
+                <div className="animal-title flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 px-3 py-1">
+                  <h2
+                    id="discovery-title"
+                    className="text-[clamp(20px,2.6vw,34px)] leading-tight font-bold"
                   >
-                    {isNew ? 'Hewan Baru Ditemukan!' : 'Sudah Ada di Koleksimu'}
-                    <span className="ml-1.5 font-semibold normal-case">
-                      ({foundCount}/{TOTAL_EXHIBITS})
+                    {species.name}
+                  </h2>
+                  {info && (
+                    <span className="text-[clamp(10px,1.1vw,13px)] text-bark">
+                      {info.scientificName}
                     </span>
-                  </p>
+                  )}
+                </div>
+                {speech.supported && (
+                  <button
+                    type="button"
+                    className="animal-speaker w-[clamp(42px,5vw,56px)] shrink-0"
+                    aria-label={`Dengarkan info ${species.name}`}
+                    aria-pressed={speech.speaking}
+                    onClick={speech.toggle}
+                  >
+                    <SpeakerIcon className="size-[55%]" />
+                  </button>
                 )}
-                {expected && (
-                  <p className="rounded-xl bg-white/85 px-3 py-1.5 text-sm leading-snug">
-                    Ini QR kandang <b>{species.name}</b>, bukan {getSpecies(expected).name}.{' '}
-                    {isNew ? 'Tetap masuk koleksimu!' : ''}
-                  </p>
+              </header>
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-[clamp(8px,1.4vw,16px)] pb-3">
+                <div
+                  className="mx-auto mt-2 w-[62%] overflow-hidden rounded-[clamp(16px,2.4vw,28px)] bg-meadow shadow-[0_4px_10px_rgb(0_0_0/0.18)]"
+                  style={{ aspectRatio: PHOTO_ASPECT }}
+                >
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt={`Foto ${species.name}`}
+                      className="size-full object-cover"
+                      draggable={false}
+                    />
+                  ) : (
+                    <AnimalPortrait
+                      exhibit={exhibit}
+                      found
+                      aspect={PHOTO_ASPECT}
+                      className="size-full"
+                    />
+                  )}
+                </div>
+
+                {info ? (
+                  <>
+                    <div className="mt-1 grid grid-cols-2 gap-x-[clamp(8px,1.4vw,16px)]">
+                      <InfoBox label="Kingdom" icon={CrownIcon} iconSide="left">
+                        {info.taxonomy.kingdom}
+                      </InfoBox>
+                      <InfoBox label="Asal" icon={FoldedMapIcon}>
+                        {info.origin}
+                      </InfoBox>
+                      <InfoBox label="Makanan" icon={FoodIcon} iconSide="left">
+                        {info.diet}
+                      </InfoBox>
+                      <InfoBox label="Sifat" icon={MoodIcon}>
+                        {info.temperament}
+                      </InfoBox>
+                    </div>
+                    <InfoBox label="Fakta Unik" icon={QuestionMark}>
+                      {info.funFact}
+                    </InfoBox>
+                    <button
+                      type="button"
+                      className="taxonomy-toggle relative mt-4 min-h-10 w-full text-[clamp(14px,1.6vw,18px)]"
+                      aria-expanded={taxonomyOpen}
+                      aria-controls="taxonomy-panel"
+                      onClick={() => setTaxonomyOpen((open) => !open)}
+                    >
+                      Taksonomi
+                      <ChevronsDownIcon
+                        className={`absolute right-3 size-5 text-bark transition-transform ${taxonomyOpen ? '-rotate-90' : ''}`}
+                      />
+                    </button>
+                  </>
+                ) : (
+                  <InfoBox label="Info Hewan" icon={QuestionMark}>
+                    Info lengkap {species.name} segera hadir. Nantikan, ya!
+                  </InfoBox>
                 )}
               </div>
-            )}
-
-            <div
-              className="mx-auto mt-2 w-[62%] overflow-hidden rounded-[clamp(16px,2.4vw,28px)] bg-meadow shadow-[0_4px_10px_rgb(0_0_0/0.18)]"
-              style={{ aspectRatio: PHOTO_ASPECT }}
-            >
-              {photo ? (
-                <img
-                  src={photo}
-                  alt={`Foto ${species.name}`}
-                  className="size-full object-cover"
-                  draggable={false}
-                />
-              ) : (
-                <AnimalPortrait
-                  exhibit={exhibit}
-                  found
-                  aspect={PHOTO_ASPECT}
-                  className="size-full"
-                />
-              )}
             </div>
+          </article>
 
-            {info ? (
-              <>
-                <div className="mt-1 grid grid-cols-2 gap-x-[clamp(8px,1.4vw,16px)]">
-                  <InfoBox label="Kingdom" icon={CrownIcon} iconSide="left">
-                    {info.taxonomy.kingdom}
-                  </InfoBox>
-                  <InfoBox label="Asal" icon={FoldedMapIcon}>
-                    {info.origin}
-                  </InfoBox>
-                  <InfoBox label="Makanan" icon={FoodIcon} iconSide="left">
-                    {info.diet}
-                  </InfoBox>
-                  <InfoBox label="Sifat" icon={MoodIcon}>
-                    {info.temperament}
-                  </InfoBox>
-                </div>
-                <InfoBox label="Fakta Unik" icon={QuestionMark}>
-                  {info.funFact}
-                </InfoBox>
-                <button
-                  type="button"
-                  className="taxonomy-toggle relative mt-4 min-h-10 w-full text-[clamp(14px,1.6vw,18px)]"
-                  aria-expanded={taxonomyOpen}
-                  aria-controls="taxonomy-panel"
-                  onClick={() => setTaxonomyOpen((open) => !open)}
-                >
-                  Taksonomi
-                  <ChevronsDownIcon
-                    className={`absolute right-3 size-5 text-bark transition-transform ${taxonomyOpen ? '-rotate-90' : ''}`}
-                  />
-                </button>
-              </>
-            ) : (
-              <InfoBox label="Info Hewan" icon={QuestionMark}>
-                Info lengkap {species.name} segera hadir. Nantikan, ya!
-              </InfoBox>
-            )}
-          </div>
-        </div>
-      </article>
-
-      {taxonomyOpen && info && <TaxonomyPanel taxonomy={info.taxonomy} />}
+          {taxonomyOpen && info && <TaxonomyPanel taxonomy={info.taxonomy} />}
+        </>
+      )}
 
       <button
         ref={closeRef}
         type="button"
-        className="icon-btn absolute top-[max(env(safe-area-inset-top),10px)] right-[max(env(safe-area-inset-right),12px)] z-10"
+        className={`icon-btn absolute top-[max(env(safe-area-inset-top),10px)] right-[max(env(safe-area-inset-right),12px)] z-10 ${design ? 'sr-only focus-visible:not-sr-only' : ''}`}
         aria-label="Tutup kartu"
         onClick={onClose}
       >
         <CloseIcon className="size-6" />
       </button>
     </div>
+  )
+}
+
+interface DesignCardViewProps {
+  design: CardDesign
+  name: string
+  info: SpeciesInfo | undefined
+  taxonomyOpen: boolean
+  onToggleTaxonomy: () => void
+  speech: ReturnType<typeof useSpeech>
+}
+
+/**
+ * Kartu dari desainer, ditampilkan apa adanya. Tombol speaker & "Taksonomi" adalah area tekan
+ * transparan di atas tombol yang tergambar. Isi kartu juga ditulis sebagai teks tersembunyi
+ * untuk pembaca layar.
+ */
+function DesignCardView({
+  design,
+  name,
+  info,
+  taxonomyOpen,
+  onToggleTaxonomy,
+  speech,
+}: DesignCardViewProps) {
+  return (
+    <>
+      <article
+        className="relative max-h-full animate-pop-in overflow-y-auto"
+        style={{ width: DESIGN_CARD_WIDTH }}
+      >
+        <div
+          className="relative"
+          style={{ aspectRatio: `${design.card.width} / ${design.card.height}` }}
+        >
+          <img src={design.card.src} alt="" className="size-full select-none" draggable={false} />
+          {info && (
+            <div className="sr-only">
+              <p>
+                {name} ({info.scientificName})
+              </p>
+              <p>Kingdom: {info.taxonomy.kingdom}</p>
+              <p>Asal: {info.origin}</p>
+              <p>Makanan: {info.diet}</p>
+              <p>Sifat: {info.temperament}</p>
+              <p>Fakta unik: {info.funFact}</p>
+            </div>
+          )}
+          {speech.supported && (
+            <button
+              type="button"
+              className="design-hotspot rounded-[22%]"
+              style={boxStyle(design.speaker, design.card)}
+              aria-label={`Dengarkan info ${name}`}
+              aria-pressed={speech.speaking}
+              onClick={speech.toggle}
+            />
+          )}
+          <button
+            type="button"
+            className="design-hotspot rounded-[10px]"
+            style={boxStyle(design.taxonomyButton, design.card)}
+            aria-expanded={taxonomyOpen}
+            aria-controls="taxonomy-panel"
+            onClick={onToggleTaxonomy}
+          >
+            <span className="sr-only">Taksonomi</span>
+          </button>
+        </div>
+      </article>
+
+      {taxonomyOpen && (
+        <aside
+          id="taxonomy-panel"
+          aria-label="Taksonomi"
+          className="relative max-h-full animate-slide-in-right overflow-y-auto"
+          style={{
+            width: `calc(${DESIGN_CARD_WIDTH} * ${design.taxonomy.width / design.card.width})`,
+          }}
+        >
+          <img src={design.taxonomy.src} alt="" className="w-full select-none" draggable={false} />
+          {info && (
+            <ul className="sr-only">
+              {TAXONOMY_ROWS.map(({ key, label }) => (
+                <li key={key}>
+                  {label}: {info.taxonomy[key]}
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+      )}
+    </>
   )
 }
 

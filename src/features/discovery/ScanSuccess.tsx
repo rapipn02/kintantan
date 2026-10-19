@@ -1,9 +1,13 @@
 import { useEffect } from 'react'
 import { useGameStore } from '../../app/gameStore.ts'
-import singaBerhasil from '../../assets/decor/singa-berhasil.webp'
+import berhasil from '../../assets/desain/scan-berhasil.png'
+import { containWidth, type DesignImage } from '../../shared/ui/designImage.ts'
 
 /** Lama popup tampil sebelum otomatis lanjut ke kartu hewan. */
 const DURATION_MS = 1600
+
+/** Desain "Pindai berhasil", dipakai apa adanya. */
+const DESIGN: DesignImage = { src: berhasil, width: 856, height: 556 }
 
 /** Popup "Pindai berhasil" (singa bersorak) sesaat setelah QR kandang berhasil discan. */
 export function ScanSuccess() {
@@ -31,19 +35,13 @@ export function ScanSuccess() {
       role="status"
       onClick={endCelebrate}
     >
-      <div className="success-frame w-[min(560px,92vw)] animate-tour-pop">
-        <div className="success-card flex items-center justify-between gap-2 py-[clamp(10px,2vh,20px)] pr-[clamp(10px,2vw,24px)] pl-[clamp(24px,5vw,64px)]">
-          <p className="text-[clamp(32px,5.2vw,58px)] leading-[1.1] font-medium text-white">
-            Pindai <br />
-            berhasil
-          </p>
-          <img
-            src={singaBerhasil}
-            alt=""
-            className="h-[min(30vh,190px)] w-auto shrink-0 animate-twinkle"
-          />
-        </div>
-      </div>
+      <img
+        src={DESIGN.src}
+        alt="Pindai berhasil"
+        className="animate-tour-pop select-none"
+        style={{ width: containWidth(DESIGN, 'min(100%, 640px)', 'calc(100dvh - 20px)') }}
+        draggable={false}
+      />
     </div>
   )
 }

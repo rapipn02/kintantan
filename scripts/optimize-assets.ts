@@ -4,8 +4,8 @@
  *   assets-src/map.png                   -> src/assets/map/base.png (disalin apa adanya)
  *                                           + base.meta.json (ukuran + LQIP)
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
- *   assets-src/mascot/<pose>.png         -> src/assets/mascot/<pose>.webp (maskot macan tur pengenalan)
- *   assets-src/decor/<nama>.png          -> src/assets/decor/<nama>.webp (hiasan scanner & popup berhasil)
+ *   assets-src/desain/*.png              -> src/assets/desain/*.png (disalin apa adanya: tur, scanner,
+ *                                           popup berhasil, kartu hewan)
  *   assets-src/photos/<species-id>.jpg   -> src/assets/photos/<species-id>.webp (foto di kartu hewan)
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
  *
@@ -25,8 +25,6 @@ const OUT_ICONS = path.join(ROOT, 'public/icons')
 /** Di bawah lebar ini peta mulai terlihat buram saat di-zoom di layar Retina. */
 const MIN_MAP_WIDTH = 3000
 const MAX_SPRITE_SIZE = 512
-const MAX_MASCOT_HEIGHT = 600
-const MAX_DECOR_SIZE = 800
 const MAX_PHOTO_SIZE = 900
 const IMAGE_EXT = /\.(webp|png|jpe?g|avif)$/i
 
@@ -107,6 +105,18 @@ async function buildFolder(name: string, maxSize: { width?: number; height?: num
   console.log(`${name}: ${files.length}`)
 }
 
+/** Gambar desain (tur, scanner, kartu) dipakai PERSIS seperti dari desainer: disalin, tidak diubah. */
+async function copyDesigns() {
+  const dir = path.join(SRC, 'desain')
+  if (!existsSync(dir)) return
+  const out = path.join(ROOT, 'src/assets/desain')
+  await rm(out, { recursive: true, force: true })
+  await mkdir(out, { recursive: true })
+  const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
+  for (const file of files) await copyFile(path.join(dir, file), path.join(out, file))
+  console.log(`desain: ${files.length} (apa adanya)`)
+}
+
 async function buildIcons() {
   const svg = path.join(SRC, 'icon.svg')
   await mkdir(OUT_ICONS, { recursive: true })
@@ -133,7 +143,6 @@ async function buildIcons() {
 
 await buildMap()
 await buildSprites()
-await buildFolder('mascot', { height: MAX_MASCOT_HEIGHT })
-await buildFolder('decor', { width: MAX_DECOR_SIZE, height: MAX_DECOR_SIZE })
+await copyDesigns()
 await buildFolder('photos', { width: MAX_PHOTO_SIZE, height: MAX_PHOTO_SIZE })
 await buildIcons()

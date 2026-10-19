@@ -28,8 +28,6 @@
   --animate-spin-slow: spin 14s linear infinite;
   --animate-tilt: tilt 2.4s ease-in-out infinite;
   --animate-tour-pop: tour-pop 320ms cubic-bezier(0.2, 1.3, 0.4, 1) both;
-  --animate-mascot-in: mascot-in 420ms cubic-bezier(0.2, 1.2, 0.4, 1) both;
-  --animate-twinkle: twinkle 900ms ease-in-out infinite;
 }
 
 @layer base {
@@ -310,134 +308,29 @@
   box-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
 }
 
-/* ---------- Tur pengenalan (macan pemandu) ---------- */
+/* ---------- Gambar desain apa adanya ---------- */
 
-.btn-lanjut {
-  display: inline-grid;
-  place-items: center;
-  min-width: clamp(8.5rem, 14vw, 13rem);
-  min-height: clamp(46px, 5.5vw, 68px);
-  padding: 0 1.75rem;
-  border-radius: 16px;
-  background: #ffc107;
-  color: #1f1a14;
-  font-size: clamp(1.15rem, 1.7vw, 1.6rem);
-  font-weight: 700;
-  box-shadow: 0 4px 0 #d39e00;
-  transition: transform 80ms ease-out;
+/* Area tekan transparan di atas tombol yang tergambar di desain (tur, kartu hewan). */
+.design-hotspot {
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 80ms ease-out;
 }
 
-.btn-lanjut:focus-visible {
+.design-hotspot:active {
+  background: rgb(0 0 0 / 0.1);
+}
+
+.design-hotspot:focus-visible {
   outline: 3px solid #5b3a1f;
-  outline-offset: 3px;
-}
-
-.btn-lanjut:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #d39e00;
-}
-
-.tour-welcome {
-  border-radius: 28px;
-  border: 1.5px solid #f4a261;
-  background: #fffdf0;
-  box-shadow: 0 24px 50px -16px rgb(0 0 0 / 0.5);
-}
-
-/* Lubang sorot: bayangan raksasa menggelapkan layar kecuali elemen yang disorot + cahaya hijau. */
-.tour-spotlight {
-  position: absolute;
-  border-radius: 18px;
-  pointer-events: none;
-  box-shadow:
-    0 0 22px 12px rgb(166 199 32 / 0.9),
-    0 0 0 200vmax rgb(0 0 0 / 0.45);
-  transition:
-    left 300ms ease,
-    top 300ms ease,
-    width 300ms ease,
-    height 300ms ease;
-}
-
-.tour-mascot {
-  position: absolute;
-  left: max(env(safe-area-inset-left), 5vw);
-  bottom: max(env(safe-area-inset-bottom), 2vh);
-  height: min(54vh, 29vw);
-  width: auto;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 14px rgb(0 0 0 / 0.25));
-}
-
-/* Gelembung hijau berbingkai abu transparan. */
-.tour-bubble {
-  padding: clamp(6px, 1vw, 12px);
-  border-radius: clamp(20px, 2.4vw, 30px);
-  background: rgb(159 159 159 / 0.55);
-}
-
-.tour-bubble-inner {
-  position: relative;
-  overflow: hidden;
-  padding: clamp(14px, 2.4vw, 32px) clamp(16px, 2.4vw, 36px) clamp(12px, 2vw, 28px);
-  border-radius: clamp(14px, 1.8vw, 22px);
-  background: #acd377;
-  box-shadow: 0 4px 10px rgb(0 0 0 / 0.18);
+  outline-offset: 2px;
 }
 
 /* ---------- Pola jejak kaki (latar desain) ---------- */
 
-.paw-cream {
-  background-color: #f7f1e4;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='%23ebe5d7'%3E%3Cg transform='translate(6 8) rotate(-18 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(42 40) rotate(16 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.paw-camera {
-  background-color: #9fbf9d;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='%2394b592'%3E%3Cg transform='translate(6 8) rotate(-18 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(42 40) rotate(16 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
 .paw-green {
   background-color: #b5d48b;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='%23a6c87a'%3E%3Cg transform='translate(6 8) rotate(-18 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(42 40) rotate(16 10 10)'%3E%3Cellipse cx='10' cy='13' rx='5' ry='4.2'/%3E%3Cellipse cx='3.8' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='16.2' cy='7.6' rx='2' ry='2.6'/%3E%3Cellipse cx='7.4' cy='3.4' rx='1.9' ry='2.4'/%3E%3Cellipse cx='12.6' cy='3.4' rx='1.9' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-/* ---------- Scanner (desain "Scan Barcode Hewan") ---------- */
-
-.scan-frame {
-  position: relative;
-  border-radius: clamp(20px, 3vw, 32px);
-  background: #d9d9d9;
-  padding: clamp(8px, 1.6vw, 20px);
-  box-shadow: 0 24px 50px -16px rgb(0 0 0 / 0.5);
-}
-
-.scan-header {
-  border-radius: clamp(10px, 1.4vw, 16px);
-  background: #f3af4f;
-  color: #277c45;
-}
-
-.scan-camera {
-  position: relative;
-  overflow: hidden;
-  border: clamp(4px, 0.6vw, 7px) solid #edc64b;
-  border-radius: clamp(10px, 1.4vw, 16px);
-  box-shadow: 0 4px 10px rgb(0 0 0 / 0.18);
-}
-
-/* ---------- Popup "Pindai berhasil" ---------- */
-
-.success-frame {
-  border-radius: clamp(22px, 3vw, 34px);
-  background: rgb(218 218 218 / 0.85);
-  padding: clamp(10px, 1.6vw, 20px);
-}
-
-.success-card {
-  border-radius: clamp(16px, 2.2vw, 26px);
-  background: #eeb666;
-  box-shadow: 0 6px 14px rgb(0 0 0 / 0.18);
 }
 
 /* ---------- Kartu hewan ---------- */
@@ -568,27 +461,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes mascot-in {
-  from {
-    opacity: 0;
-    translate: 0 30%;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-@keyframes twinkle {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.06) rotate(-2deg);
   }
 }
 

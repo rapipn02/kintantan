@@ -108,3 +108,11 @@ export async function screenPoint(page: Page, point: { x: number; y: number }) {
   const rect = await worldRect(page)
   return { x: rect.x + point.x * rect.width, y: rect.y + point.y * rect.height }
 }
+
+/** Tutup kartu hewan seperti petunjuk di desain: ketuk dua kali tempat kosong. */
+export async function closeCard(page: Page) {
+  const point = { x: 6, y: VIEWPORT.height / 2 }
+  await page.touchscreen.tap(point.x, point.y)
+  await page.touchscreen.tap(point.x, point.y)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+}

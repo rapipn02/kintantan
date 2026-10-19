@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { EXHIBITS } from '../features/exhibits/catalog.ts'
 import { countFound, useDiscoveryStore } from '../features/discovery/discoveryStore.ts'
-import { TOUR_SEEN_KEY, useGameStore } from './gameStore.ts'
+import { DEMO, TOUR_SEEN_KEY, useGameStore } from './gameStore.ts'
 
 const [lion, bear] = [
   EXHIBITS.find((e) => e.id === 'singa')!,
@@ -78,10 +78,37 @@ describe('claim', () => {
     expect(useGameStore.getState().scanner).toBeNull()
   })
 
-  it('QR asing ditolak tanpa mengubah state', () => {
+  it('mode normal: QR asing ditolak tanpa mengubah state', () => {
+    DEMO.acceptAnyCode = false
+    try {
+      startPlaying()
+      expect(useGameStore.getState().claim('https://wifi.example/login')).toEqual({ ok: false })
+      expect(useGameStore.getState().reveal).toBeNull()
+    } finally {
+      DEMO.acceptAnyCode = true
+    }
+  })
+
+  it('mode demo: kode sembarang membuka hewan yang dipilih, atau Beruang Madu', () => {
     startPlaying()
-    expect(useGameStore.getState().claim('https://wifi.example/login')).toEqual({ ok: false })
-    expect(useGameStore.getState().reveal).toBeNull()
+    useGameStore.getState().openScanner(lion.id)
+    expect(useGameStore.getState().claim('https://wifi.example/login')).toMatchObject({
+      ok: true,
+      exhibitId: lion.id,
+    })
+    useGameStore.getState().closeReveal()
+
+    useGameStore.getState().openScanner(null)
+    expect(useGameStore.getState().claim('kodeasal')).toMatchObject({
+      ok: true,
+      exhibitId: DEMO.fallbackExhibitId,
+    })
+    expect(useGameStore.getState().reveal?.expectedId).toBeUndefined()
+  })
+
+  it('mode demo tidak berlaku untuk deep link sebelum mulai main', () => {
+    expect(useGameStore.getState().claim('zzzzzzzz')).toEqual({ ok: false })
+    expect(useGameStore.getState().pendingReveal).toBeNull()
   })
 
   it('deep link sebelum layar pembuka ditutup: kartu ditunda sampai start', () => {

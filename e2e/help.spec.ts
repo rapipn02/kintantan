@@ -7,21 +7,22 @@ test('tur pengenalan tampil sekali saat pertama main, lalu panduan bisa dibuka d
   await page.goto('/')
   await page.getByRole('button', { name: 'Mulai Petualangan' }).tap()
 
-  const welcome = page.getByRole('dialog', { name: 'Halo Sobat!' })
-  await expect(welcome).toBeVisible()
-  await welcome.getByRole('button', { name: 'Lanjut' }).tap()
-
-  // Tiap langkah menyorot satu elemen HUD.
+  // Gambar tur dipakai apa adanya; isi teksnya tersedia untuk pembaca layar.
   const steps = [
-    'Di sini tertera jumlah kandang yang sudah kamu kunjungi.',
-    'Klik tombol ini untuk memindai kode QR di depanmu ya!',
-    'Klik tombol ini untuk melihat keseluruhan peta ya!',
-    'Bingung? Klik tombol ini untuk panduan tambahan ya!',
-  ]
-  for (const [i, text] of steps.entries()) {
-    const step = page.getByRole('dialog', { name: `Panduan ${i + 2} dari 5` })
+    [
+      'Halo Sobat! Mau tahu apa saja hal seru yang bisa kita lakuin di sini? Yuk, intip panduannya!',
+      'Lanjut',
+    ],
+    ['Disini tertera jumlah kandang yang sudah kamu kunjungi.', 'Lanjut'],
+    ['Klik tombol ini untuk memindai kode QR di depanmu ya!', 'Lanjut'],
+    ['Klik tombol ini untuk melihat keseluruhan peta ya!', 'Lanjut'],
+    ['Bingung? Klik tombol ini untuk panduan tambahan ya!', 'Lanjut'],
+    ['Selesai! Apakah kamu siap berpetualang sobat?', 'Siap'],
+  ] as const
+  for (const [i, [text, button]] of steps.entries()) {
+    const step = page.getByRole('dialog', { name: `Panduan ${i + 1} dari 6` })
     await expect(step).toHaveAccessibleDescription(text)
-    await step.getByRole('button', { name: 'Lanjut' }).tap()
+    await step.getByRole('button', { name: button }).tap()
   }
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
@@ -42,7 +43,7 @@ test('tur pengenalan tampil sekali saat pertama main, lalu panduan bisa dibuka d
 test('tur bisa dilewati dengan Escape', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Mulai Petualangan' }).tap()
-  await expect(page.getByRole('dialog', { name: 'Halo Sobat!' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Panduan 1 dari 6' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })

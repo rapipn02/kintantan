@@ -74,14 +74,20 @@ teman desainer meng-export:
 2. **Tiap hewan sebagai PNG transparan** (export 2×) → `assets-src/sprites/<id-hewan>.png`. Nama
    file harus sama dengan `id` di `src/features/exhibits/data/exhibits.ts` (mis. `singa.png`,
    `rusa-totol-2.png`).
-3. **Maskot macan tur pengenalan** → `assets-src/mascot/<pose>.png` (PNG transparan): `macan-sapa`,
-   `macan-tunjuk` (otomatis dicerminkan untuk menunjuk ke kiri), dan `macan-bingung`. Versi
-   sekarang dipotong dari screenshot desain tur; export langsung dari Figma akan lebih tajam.
-4. **Hiasan scanner & popup "Pindai berhasil"** → `assets-src/decor/` (`sulur`, `daun`,
-   `hewan-intip`, `singa-berhasil`). Versi sekarang dipotong dari desain.
-5. **Foto hewan untuk kartu** (opsional) → `assets-src/photos/<id-spesies>.jpg`, mis.
+3. **Gambar desain (tur, scanner, popup "Pindai berhasil", kartu hewan)** → `assets-src/desain/`.
+   Dipakai **persis apa adanya** (disalin byte-per-byte, tidak dipotong/diedit); aplikasi hanya
+   mengatur letak dan ukuran tampilnya. Tombol yang tergambar (mis. "Lanjut", "Taksonomi", speaker)
+   diberi area tekan transparan; letaknya (px gambar asli) ada di `IntroTour.tsx`,
+   `ScannerModal.tsx`, dan `src/features/discovery/cardDesigns.ts`. Kartu hewan per spesies:
+   `kartu-<id-spesies>.png` + `taksonomi-<id-spesies>.png`, lalu daftarkan di `cardDesigns.ts`.
+4. **Foto hewan untuk kartu** (opsional) → `assets-src/photos/<id-spesies>.jpg`, mis.
    `beruang-madu.jpg`. Tanpa foto, kartu memotong gambar hewan dari peta.
-6. Jalankan `npm run assets`.
+5. Jalankan `npm run assets`.
+
+**Mode demo (sementara aktif):** kode apa pun yang discan atau diketik di scanner aplikasi membuka
+kartu hewan (hewan yang sedang dipilih, atau Beruang Madu dari tombol QR umum). Deep link
+`/s/<token>` tetap hanya menerima kode asli. Matikan dengan `DEMO.acceptAnyCode = false` di
+`src/app/gameStore.ts` sebelum dipakai pengunjung.
 
 Isi kartu hewan (nama ilmiah, asal, makanan, sifat, fakta unik, taksonomi) ada di
 `src/features/exhibits/data/speciesInfo.ts`, satu entri per spesies. Spesies yang belum diisi
