@@ -109,12 +109,23 @@ test('double-tap memperbesar peta', async ({ page }) => {
 test('link QR (kamera bawaan / NFC) membuka kartu dan progres tersimpan', async ({ page }) => {
   await page.goto(`/s/${tokenOf('beruang-madu')}`)
   await expect(page).toHaveURL(/\/$/)
-  await startGame(page)
+  await page.getByRole('button', { name: /Petualangan/ }).tap()
 
+  // Popup "Pindai berhasil" dulu (±1,6 detik), lalu kartu hewan.
+  await expect(page.getByRole('status').getByText('Pindai berhasil')).toBeVisible()
   const card = page.getByRole('dialog', { name: 'Beruang Madu' })
   await expect(card).toBeVisible()
+  await expect(page.getByText('Pindai berhasil')).toBeHidden()
   await expect(card.getByText('Hewan Baru Ditemukan!')).toBeVisible()
-  await card.getByRole('button', { name: 'Lanjut Jelajah' }).tap()
+  await expect(card.getByText('Helarctos malayanus').first()).toBeVisible()
+  await expect(card.getByText('Asia Tenggara')).toBeVisible()
+
+  const taxonomy = card.getByRole('complementary', { name: 'Taksonomi' })
+  await expect(taxonomy).toBeHidden()
+  await card.getByRole('button', { name: 'Taksonomi' }).tap()
+  await expect(taxonomy.getByText('Ursidae')).toBeVisible()
+
+  await card.getByRole('button', { name: 'Tutup kartu' }).tap()
 
   await expect(page.getByTestId('hud-progress')).toHaveAccessibleName('1 dari 57 hewan ditemukan')
   await expect(page.locator('[data-exhibit="beruang-madu"]')).toHaveAccessibleName(

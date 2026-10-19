@@ -77,7 +77,15 @@ teman desainer meng-export:
 3. **Maskot macan tur pengenalan** → `assets-src/mascot/<pose>.png` (PNG transparan): `macan-sapa`,
    `macan-tunjuk` (otomatis dicerminkan untuk menunjuk ke kiri), dan `macan-bingung`. Versi
    sekarang dipotong dari screenshot desain tur; export langsung dari Figma akan lebih tajam.
-4. Jalankan `npm run assets`.
+4. **Hiasan scanner & popup "Pindai berhasil"** → `assets-src/decor/` (`sulur`, `daun`,
+   `hewan-intip`, `singa-berhasil`). Versi sekarang dipotong dari desain.
+5. **Foto hewan untuk kartu** (opsional) → `assets-src/photos/<id-spesies>.jpg`, mis.
+   `beruang-madu.jpg`. Tanpa foto, kartu memotong gambar hewan dari peta.
+6. Jalankan `npm run assets`.
+
+Isi kartu hewan (nama ilmiah, asal, makanan, sifat, fakta unik, taksonomi) ada di
+`src/features/exhibits/data/speciesInfo.ts`, satu entri per spesies. Spesies yang belum diisi
+tetap punya kartu dengan keterangan "segera hadir".
 
 Kalau sprite tersedia, hewan otomatis digambar dari sprite, dan hewan yang belum ditemukan tampil
 sebagai **siluet**. Kalau sprite belum ada, peta komposit dipakai apa adanya.

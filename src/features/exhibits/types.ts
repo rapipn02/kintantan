@@ -8,11 +8,33 @@ export interface NormalizedBox {
 
 export type SpeciesGroup = 'mamalia' | 'burung' | 'reptil' | 'ikan'
 
-/** Jenis hewan. Informasi lengkap (habitat, makanan, fakta) akan ditambahkan di fitur berikutnya. */
+/** Jenis hewan. Isi kartu hewan ada terpisah di `data/speciesInfo.ts`. */
 export interface Species {
   id: string
   name: string
   group: SpeciesGroup
+}
+
+export interface Taxonomy {
+  kingdom: string
+  phylum: string
+  class: string
+  order: string
+  family: string
+  genus: string
+  species: string
+}
+
+/** Isi kartu hewan (sesuai desain kartu Beruang Madu). */
+export interface SpeciesInfo {
+  scientificName: string
+  /** Asal / persebaran alami. */
+  origin: string
+  diet: string
+  /** Sifat / perilaku. */
+  temperament: string
+  funFact: string
+  taxonomy: Taxonomy
 }
 
 /**

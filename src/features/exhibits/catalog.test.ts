@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { extractToken } from '../scanner/parseScanResult.ts'
+import { SPECIES_INFO } from './data/speciesInfo.ts'
 import { EXHIBITS, findExhibitByToken, getSpecies, SPECIES } from './catalog.ts'
 
 describe('data exhibit', () => {
@@ -22,6 +23,14 @@ describe('data exhibit', () => {
   it('tidak ada spesies yang tidak dipakai', () => {
     const used = new Set(EXHIBITS.map((e) => e.speciesId))
     expect(SPECIES.filter((s) => !used.has(s.id))).toEqual([])
+  })
+
+  it('info kartu hanya untuk spesies yang ada, nama ilmiahnya cocok dengan taksonomi', () => {
+    const ids = new Set(SPECIES.map((s) => s.id))
+    for (const [id, info] of Object.entries(SPECIES_INFO)) {
+      expect(ids.has(id), id).toBe(true)
+      expect(info.taxonomy.species, id).toBe(info.scientificName)
+    }
   })
 
   it('posisi berada di dalam peta', () => {

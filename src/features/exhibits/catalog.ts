@@ -1,6 +1,7 @@
 import { EXHIBITS } from './data/exhibits.ts'
 import { SPECIES } from './data/species.ts'
-import type { Exhibit, Species } from './types.ts'
+import { SPECIES_INFO } from './data/speciesInfo.ts'
+import type { Exhibit, Species, SpeciesInfo } from './types.ts'
 
 const exhibitsById = new Map(EXHIBITS.map((e) => [e.id, e]))
 const exhibitsByToken = new Map(EXHIBITS.map((e) => [e.token, e]))
@@ -27,6 +28,10 @@ export function getSpecies(exhibit: Exhibit): Species {
   if (!species)
     throw new Error(`Spesies "${exhibit.speciesId}" untuk exhibit "${exhibit.id}" tidak ada`)
   return species
+}
+
+export function getSpeciesInfo(speciesId: string): SpeciesInfo | undefined {
+  return SPECIES_INFO[speciesId]
 }
 
 export { EXHIBITS, SPECIES }

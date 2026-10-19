@@ -33,7 +33,7 @@ test('setelah dibuka sekali, web tetap jalan tanpa sinyal', async ({ page, conte
   await expect(
     page.getByRole('dialog', { name: 'Zebra' }).getByText('Hewan Baru Ditemukan!'),
   ).toBeVisible()
-  await page.getByRole('button', { name: 'Lanjut Jelajah' }).tap()
+  await page.getByRole('button', { name: 'Tutup kartu' }).tap()
   await tapExhibit(page, 'zebra')
   await expect(
     page.getByRole('complementary', { name: 'Zebra' }).getByText('Sudah masuk koleksimu!'),

@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useRef } from 'react'
 import { getExhibit, getSpecies } from '../features/exhibits/catalog.ts'
 import { ExhibitPanel } from '../features/exhibits/ExhibitPanel.tsx'
 import { DiscoveryCard } from '../features/discovery/DiscoveryCard.tsx'
+import { ScanSuccess } from '../features/discovery/ScanSuccess.tsx'
 import { HelpDialog } from '../features/help/HelpDialog.tsx'
 import { Hud } from '../features/hud/Hud.tsx'
 import { Toast } from '../features/hud/Toast.tsx'
@@ -71,6 +72,7 @@ export function App() {
         </Suspense>
       )}
 
+      <ScanSuccess />
       <DiscoveryCard />
       <IntroTour />
       <HelpDialog />

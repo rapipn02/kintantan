@@ -5,6 +5,8 @@
  *                                           + base.meta.json (ukuran + LQIP)
  *   assets-src/sprites/<exhibit-id>.png  -> src/assets/sprites/<exhibit-id>.webp
  *   assets-src/mascot/<pose>.png         -> src/assets/mascot/<pose>.webp (maskot macan tur pengenalan)
+ *   assets-src/decor/<nama>.png          -> src/assets/decor/<nama>.webp (hiasan scanner & popup berhasil)
+ *   assets-src/photos/<species-id>.jpg   -> src/assets/photos/<species-id>.webp (foto di kartu hewan)
  *   assets-src/icon.svg                  -> public/icons/* (PWA, favicon, apple-touch-icon)
  *
  * Jalankan: npm run assets
@@ -18,13 +20,14 @@ const ROOT = path.resolve(import.meta.dirname, '..')
 const SRC = path.join(ROOT, 'assets-src')
 const OUT_MAP = path.join(ROOT, 'src/assets/map')
 const OUT_SPRITES = path.join(ROOT, 'src/assets/sprites')
-const OUT_MASCOT = path.join(ROOT, 'src/assets/mascot')
 const OUT_ICONS = path.join(ROOT, 'public/icons')
 
 /** Di bawah lebar ini peta mulai terlihat buram saat di-zoom di layar Retina. */
 const MIN_MAP_WIDTH = 3000
 const MAX_SPRITE_SIZE = 512
 const MAX_MASCOT_HEIGHT = 600
+const MAX_DECOR_SIZE = 800
+const MAX_PHOTO_SIZE = 900
 const IMAGE_EXT = /\.(webp|png|jpe?g|avif)$/i
 
 /**
@@ -84,22 +87,24 @@ async function buildSprites() {
   console.log(`sprites: ${sprites.length}`)
 }
 
-async function buildMascots() {
-  const dir = path.join(SRC, 'mascot')
+/** Konversi satu folder gambar ke WebP (folder output dibersihkan dulu). */
+async function buildFolder(name: string, maxSize: { width?: number; height?: number }) {
+  const dir = path.join(SRC, name)
   if (!existsSync(dir)) return
-  await mkdir(OUT_MASCOT, { recursive: true })
-  for (const f of await readdir(OUT_MASCOT)) {
-    if (f.endsWith('.webp')) await rm(path.join(OUT_MASCOT, f))
+  const out = path.join(ROOT, 'src/assets', name)
+  await mkdir(out, { recursive: true })
+  for (const f of await readdir(out)) {
+    if (f.endsWith('.webp')) await rm(path.join(out, f))
   }
 
-  const poses = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
-  for (const file of poses) {
+  const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f))
+  for (const file of files) {
     await sharp(path.join(dir, file))
-      .resize({ height: MAX_MASCOT_HEIGHT, withoutEnlargement: true })
+      .resize({ ...maxSize, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 90, alphaQuality: 95, effort: 6 })
-      .toFile(path.join(OUT_MASCOT, file.replace(IMAGE_EXT, '.webp')))
+      .toFile(path.join(out, file.replace(IMAGE_EXT, '.webp')))
   }
-  console.log(`mascot: ${poses.length}`)
+  console.log(`${name}: ${files.length}`)
 }
 
 async function buildIcons() {
@@ -128,5 +133,7 @@ async function buildIcons() {
 
 await buildMap()
 await buildSprites()
-await buildMascots()
+await buildFolder('mascot', { height: MAX_MASCOT_HEIGHT })
+await buildFolder('decor', { width: MAX_DECOR_SIZE, height: MAX_DECOR_SIZE })
+await buildFolder('photos', { width: MAX_PHOTO_SIZE, height: MAX_PHOTO_SIZE })
 await buildIcons()

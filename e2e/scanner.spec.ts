@@ -22,7 +22,7 @@ test('scan QR di kandang membuka kartu hewan', async ({ page }) => {
   // Scanner dibuka untuk kandang singa, jadi tidak ada pesan "bukan …".
   await expect(card.getByText(/bukan/)).toHaveCount(0)
   await expect(page.getByRole('dialog', { name: /Scan QR kandang/ })).toHaveCount(0)
-  await card.getByRole('button', { name: 'Lanjut Jelajah' }).tap()
+  await card.getByRole('button', { name: 'Tutup kartu' }).tap()
   await expect(page.getByTestId('hud-progress')).toHaveAccessibleName('1 dari 57 hewan ditemukan')
 })
 

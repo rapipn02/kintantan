@@ -25,8 +25,20 @@ describe('claim', () => {
       exhibitId: lion.id,
       kind: 'new',
       expectedId: undefined,
+      celebrate: true,
     })
     expect(useDiscoveryStore.getState().found[lion.id]).toBeTypeOf('number')
+  })
+
+  it('popup "Pindai berhasil" dulu, lalu kartu; buka kartu dari panel tanpa popup', () => {
+    startPlaying()
+    useGameStore.getState().claim(lion.token)
+    useGameStore.getState().endCelebrate()
+    expect(useGameStore.getState().reveal).toMatchObject({ exhibitId: lion.id, celebrate: false })
+
+    useGameStore.getState().closeReveal()
+    useGameStore.getState().viewCard(lion.id)
+    expect(useGameStore.getState().reveal).toEqual({ exhibitId: lion.id, kind: 'view' })
   })
 
   it('scan ulang: kartu "again", koleksi tidak bertambah', () => {
@@ -43,7 +55,12 @@ describe('claim', () => {
     useGameStore.getState().openScanner(lion.id)
     useGameStore.getState().claim(bear.token)
     const state = useGameStore.getState()
-    expect(state.reveal).toEqual({ exhibitId: bear.id, kind: 'new', expectedId: lion.id })
+    expect(state.reveal).toEqual({
+      exhibitId: bear.id,
+      kind: 'new',
+      expectedId: lion.id,
+      celebrate: true,
+    })
     expect(state.scanner).toBeNull()
     expect(state.selectedId).toBe(bear.id)
   })
@@ -56,6 +73,7 @@ describe('claim', () => {
       exhibitId: bear.id,
       kind: 'new',
       expectedId: undefined,
+      celebrate: true,
     })
     expect(useGameStore.getState().scanner).toBeNull()
   })

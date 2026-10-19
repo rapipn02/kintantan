@@ -20,6 +20,8 @@ export interface Reveal {
   kind: RevealKind
   /** Hewan yang sedang dipilih saat scan, bila QR yang discan ternyata milik hewan lain. */
   expectedId?: string
+  /** Tampilkan popup "Pindai berhasil" dulu sebelum kartu (hanya setelah scan). */
+  celebrate?: boolean
 }
 
 export type ClaimResult = { ok: true; exhibitId: string; isNew: boolean } | { ok: false }
@@ -60,6 +62,8 @@ interface GameState {
   /** Proses hasil scan QR, ketikan kode, atau deep link. */
   claim: (raw: string) => ClaimResult
   viewCard: (exhibitId: string) => void
+  /** Popup "Pindai berhasil" selesai: lanjut ke kartu hewan. */
+  endCelebrate: () => void
   closeReveal: () => void
   showToast: (message: string) => void
   dismissToast: (id: number) => void
@@ -113,6 +117,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
       exhibitId: exhibit.id,
       kind: isNew ? 'new' : 'again',
       expectedId: targetId && targetId !== exhibit.id ? targetId : undefined,
+      celebrate: true,
     }
     if (phase === 'intro') set({ pendingReveal: reveal, selectedId: exhibit.id })
     else set({ reveal, scanner: null, selectedId: exhibit.id })
@@ -122,6 +127,11 @@ export const useGameStore = create<GameState>()((set, get) => ({
   },
 
   viewCard: (exhibitId) => set({ reveal: { exhibitId, kind: 'view' } }),
+
+  endCelebrate: () => {
+    const reveal = get().reveal
+    if (reveal?.celebrate) set({ reveal: { ...reveal, celebrate: false } })
+  },
 
   closeReveal: () => set({ reveal: null }),
 
